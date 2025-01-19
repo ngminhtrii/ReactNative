@@ -3,16 +3,20 @@ import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
 import axios from 'axios';
 
 //axios.defaults.baseURL = 'http://192.168.2.47:5000';
-axios.defaults.baseURL = 'http://172.172.31.202:5000';
+//axios.defaults.baseURL = 'http://172.172.31.202:5000';
+axios.defaults.baseURL = 'http://192.168.1.4:5000';
 
 const ForgotPasswordScreen = ({navigation}: {navigation: any}) => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [userId, setUserId] = useState('');
 
   const handleForgotPassword = async () => {
     try {
       const response = await axios.post('/api/auth/forget-password', {email});
       setMessage(response.data.message);
+      setUserId(response.data.userId);
+      navigation.navigate('ForgotPasswordOTP', {userId: response.data.userId});
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);

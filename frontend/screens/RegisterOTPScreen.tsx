@@ -5,21 +5,25 @@ import axios from 'axios';
 //axios.defaults.baseURL = 'http://172.172.31.202:5000';
 axios.defaults.baseURL = 'http://192.168.1.4:5000';
 
-const RegisterScreen = ({navigation}: {navigation: any}) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const RegisterOTPScreen = ({
+  route,
+  navigation,
+}: {
+  route: any;
+  navigation: any;
+}) => {
+  const {userId} = route.params;
+  const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('');
-  const [userId, setUserId] = useState('');
 
-  const handleRegister = async () => {
+  const handleVerifyOTP = async () => {
     try {
-      const response = await axios.post('/api/auth/register', {
-        email,
-        password,
+      const response = await axios.post('/api/auth/verify-register', {
+        userId,
+        otp,
       });
       setMessage(response.data.message);
-      setUserId(response.data.userId);
-      navigation.navigate('RegisterOTP', {userId: response.data.userId});
+      navigation.navigate('Login');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);
@@ -34,18 +38,11 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        placeholder="Enter OTP"
+        value={otp}
+        onChangeText={setOtp}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button title="Register" onPress={handleRegister} />
+      <Button title="Verify OTP" onPress={handleVerifyOTP} />
       {message ? <Text>{message}</Text> : null}
     </View>
   );
@@ -66,4 +63,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+export default RegisterOTPScreen;

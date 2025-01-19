@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema({
   },
   resetToken: String, // Token để reset password
   resetTokenExpiry: Date, // Thời gian hết hạn token
+  otp: String,
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Hash password trước khi lưu
