@@ -3,25 +3,19 @@ const {
   generateToken,
   generateOTP,
   sendOTPEmail,
+  sendVerificationEmail,
 } = require('../utils/tokenUtils');
 
 exports.register = async (req, res) => {
-  let user;
   try {
     const {email, password} = req.body;
     const otp = generateOTP();
     await sendOTPEmail(email, otp);
-    user = await User.create({email, password, otp, isActive: false});
+    const user = await User.create({email, password, otp, isActive: false});
     res.status(200).json({message: 'OTP sent to email', userId: user._id});
   } catch (error) {
     console.error('Error during registration:', error);
-    if (error.message.includes('sendOTPEmail')) {
-      res.status(500).json({error: 'Error sending OTP'});
-    } else if (user) {
-      res.status(200).json({message: 'OTP sent to email', userId: user._id});
-    } else {
-      res.status(500).json({error: 'Error creating user'});
-    }
+    res.status(500).json({error: 'Error creating user'});
   }
 };
 
@@ -56,10 +50,9 @@ exports.login = async (req, res) => {
 };
 
 exports.forgetPassword = async (req, res) => {
-  let user;
   try {
     const {email} = req.body;
-    user = await User.findOne({email});
+    const user = await User.findOne({email});
     if (!user) return res.status(404).json({error: 'User not found'});
 
     const otp = generateOTP();
@@ -69,13 +62,7 @@ exports.forgetPassword = async (req, res) => {
     res.status(200).json({message: 'OTP sent to email', userId: user._id});
   } catch (error) {
     console.error('Error during password reset:', error);
-    if (error.message.includes('sendOTPEmail')) {
-      res.status(500).json({error: 'Error sending OTP'});
-    } else if (user) {
-      res.status(200).json({message: 'OTP sent to email', userId: user._id});
-    } else {
-      res.status(500).json({error: 'Error finding user'});
-    }
+    res.status(500).json({error: 'Error sending OTP'});
   }
 };
 
@@ -90,6 +77,52 @@ exports.verifyForgetPassword = async (req, res) => {
     user.otp = null;
     await user.save();
     res.status(200).json({message: 'Password reset successfully'});
+  } catch (error) {
+    res.status(500).json({error: 'Server error'});
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const {userId, email, phoneNumber, profileImageUrl} = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({error: 'User not found'});
+
+    if (email && email !== user.email) {
+      const otp = generateOTP();
+      user.otp = otp;
+      await sendVerificationEmail(email, otp);
+      user.isActive = false;
+    }
+
+    if (profileImageUrl) {
+      user.profileImageUrl = profileImageUrl;
+    }
+
+    user.phoneNumber = phoneNumber || user.phoneNumber;
+    await user.save();
+
+    res
+      .status(200)
+      .json({message: 'Profile updated successfully', userId: user._id});
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({error: 'Server error', details: error.message});
+  }
+};
+
+exports.verifyEmailUpdate = async (req, res) => {
+  try {
+    const {userId, otp, email} = req.body;
+    const user = await User.findById(userId);
+    if (!user || user.otp !== otp) {
+      return res.status(400).json({error: 'Invalid OTP'});
+    }
+    user.email = email;
+    user.isActive = true;
+    user.otp = null;
+    await user.save();
+    res.status(200).json({message: 'Email updated successfully'});
   } catch (error) {
     res.status(500).json({error: 'Server error'});
   }

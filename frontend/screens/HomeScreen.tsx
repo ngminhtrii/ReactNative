@@ -14,6 +14,11 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
           onPress={() => navigation.navigate('Login')}>
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.profileButtonText}>Profile</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -52,6 +57,19 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
   },
   loginButtonText: {
+    color: '#000', // Chữ đen
+    fontSize: 16,
+    fontWeight: 'bold', // Chữ in đậm
+  },
+  profileButton: {
+    backgroundColor: '#fff', // Nền màu trắng
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'gray',
+    marginTop: 10,
+  },
+  profileButtonText: {
     color: '#000', // Chữ đen
     fontSize: 16,
     fontWeight: 'bold', // Chữ in đậm

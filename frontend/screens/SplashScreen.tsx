@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../navigation/AppNavigator'; // Adjust the import path as needed
+import {RootStackParamList} from '../navigation/AppNavigator';
 import {RouteProp} from '@react-navigation/native';
 
 type SplashScreenNavigationProp = StackNavigationProp<

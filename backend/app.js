@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const cors = require('cors');
 
 // Load environment variables
@@ -24,6 +25,7 @@ app.use(express.json());
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/uploads', uploadRoutes);
 
 // Start server
 app.listen(5000, () => console.log('Server running on port 5000'));

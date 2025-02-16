@@ -9,6 +9,7 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import OnboardScreen from '../screens/OnboardScreen';
 import RegisterOTPScreen from '../screens/RegisterOTPScreen';
 import ForgotPasswordOTPScreen from '../screens/ForgotPasswordOTPScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   Onboard: undefined;
   RegisterOTP: {userId: string};
   ForgotPasswordOTP: {userId: string};
+  Profile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -50,6 +52,7 @@ const AppNavigator = () => {
           name="ForgotPasswordOTP"
           component={ForgotPasswordOTPScreen}
         />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
