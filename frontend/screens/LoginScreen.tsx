@@ -22,8 +22,14 @@ const LoginScreen = ({navigation}: {navigation: any}) => {
       setMessage(response.data.message);
       navigation.navigate('Home');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        setMessage(error.response.data.error);
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          setMessage(error.response.data.error);
+        } else if (error.request) {
+          setMessage('Network error. Please check your connection.');
+        } else {
+          setMessage('An unexpected error occurred');
+        }
       } else {
         console.error('Unexpected error:', error);
         setMessage('An unexpected error occurred');
@@ -83,14 +89,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   customButton: {
-    backgroundColor: '#fff', // Nền màu trắng
+    backgroundColor: '#fff',
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: 'gray',
   },
   customButtonText: {
-    color: '#000', // Chữ màu đen
+    color: '#000',
     fontSize: 16,
   },
 });
