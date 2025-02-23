@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Image} from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {RouteProp} from '@react-navigation/native';
@@ -19,13 +19,13 @@ const SplashScreen: React.FC<Props> = ({navigation}) => {
   useEffect(() => {
     setTimeout(() => {
       navigation.replace('Onboard');
-    }, 5000); // 5 seconds delay
+    }, 10000); // 3 seconds delay
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Xin chào, tôi là Nguyen Minh Tri</Text>
-      <Text style={styles.subtitle}>Đang tải tài nguyên...</Text>
+      <Image source={require('../../assets/logo.png')} style={styles.logo} />
+      <Text style={styles.subtitle}>Đang tải...</Text>
     </View>
   );
 };
@@ -35,14 +35,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0', // Màu nền cho splash
+    backgroundColor: '#222222', // Màu nền cho splash
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-    marginTop: 20, // Điều chỉnh vị trí lên xuống của chữ
+  logo: {
+    width: 150, // Điều chỉnh chiều rộng của logo
+    height: 150, // Điều chỉnh chiều cao của logo
+    resizeMode: 'contain', // Đảm bảo hình ảnh không bị méo
+    marginBottom: 20, // Khoảng cách giữa logo và subtitle
   },
   subtitle: {
     fontSize: 18,

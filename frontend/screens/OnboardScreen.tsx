@@ -1,14 +1,27 @@
-import React, {useState} from 'react';
-import {View, Text, Button, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, StyleSheet, Image, TouchableOpacity, Text} from 'react-native';
 
-const onboardTexts = ['OnboardScreen1', 'OnboardScreen2'];
+const onboardImages = [
+  require('../../assets/anh01.png'),
+  require('../../assets/anh02.png'),
+];
 
 const OnboardScreen = ({navigation}: {navigation: any}) => {
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex(prevIndex =>
+        prevIndex === onboardImages.length - 1 ? 0 : prevIndex + 1,
+      );
+    }, 2000); // 2 giây
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNext = () => {
-    if (currentTextIndex < onboardTexts.length - 1) {
-      setCurrentTextIndex(currentTextIndex + 1);
+    if (currentImageIndex < onboardImages.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
     } else {
       navigation.replace('Login');
     }
@@ -20,10 +33,14 @@ const OnboardScreen = ({navigation}: {navigation: any}) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>{onboardTexts[currentTextIndex]}</Text>
+      <Image source={onboardImages[currentImageIndex]} style={styles.image} />
       <View style={styles.buttonContainer}>
-        <Button title="Skip" onPress={handleSkip} />
-        <Button title="Next" onPress={handleNext} />
+        <TouchableOpacity onPress={handleSkip}>
+          <Text style={styles.buttonText}>Skip</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleNext}>
+          <Text style={styles.buttonText}>Next</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -35,15 +52,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  image: {
+    width: '95%', // Điều chỉnh chiều rộng
+    height: '95%', // Điều chỉnh chiều cao
+    resizeMode: 'contain',
   },
   buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
-    marginTop: 20,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: 'black',
   },
 });
 
