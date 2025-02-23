@@ -87,15 +87,17 @@ exports.verifyForgetPassword = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const {userId, email, phoneNumber, profileImageUrl} = req.body;
+    const {userId, phoneNumber, profileImageUrl} = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({error: 'User not found'});
 
-    if (email && email !== user.email) {
+    let otpSent = false;
+
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
       const otp = generateOTP();
       user.otp = otp;
-      await sendVerificationEmail(email, otp);
-      user.isActive = false;
+      await sendOTPEmail(user.email, otp); // Send OTP to the user's email
+      otpSent = true;
     }
 
     if (profileImageUrl) {
@@ -108,9 +110,11 @@ exports.updateProfile = async (req, res) => {
 
     await user.save();
 
-    res
-      .status(200)
-      .json({message: 'Profile updated successfully', userId: user._id});
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      userId: user._id,
+      otpSent,
+    });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({error: 'Server error', details: error.message});

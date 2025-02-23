@@ -22,6 +22,7 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [imageData, setImageData] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [initialPhoneNumber, setInitialPhoneNumber] = useState(''); // New state for initial phone number
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
 
@@ -40,6 +41,7 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
         const {email, phoneNumber, profileImageUrl} = response.data;
         setEmail(email);
         setPhoneNumber(phoneNumber);
+        setInitialPhoneNumber(phoneNumber); // Set initial phone number
         setProfileImageUrl(
           profileImageUrl || 'https://via.placeholder.com/150',
         );
@@ -91,9 +93,14 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
         },
       );
 
-      if (email) {
-        setIsOtpSent(true);
-        Alert.alert('OTP sent to your email');
+      if (response.data.message === 'Profile updated successfully') {
+        if (phoneNumber !== initialPhoneNumber) {
+          // Check if phone number has changed
+          setIsOtpSent(true);
+          Alert.alert('OTP sent to your email');
+        } else {
+          Alert.alert('Profile updated successfully');
+        }
       } else {
         Alert.alert(response.data.message);
       }
@@ -160,7 +167,7 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
             style={styles.input}
             placeholder="Email"
             value={email}
-            onChangeText={setEmail}
+            editable={false} // Disable email input
           />
           <TextInput
             style={styles.input}
