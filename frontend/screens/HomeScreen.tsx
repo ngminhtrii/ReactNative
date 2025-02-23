@@ -6,35 +6,56 @@ import {
   Image,
   TextInput,
 } from 'react-native';
-import {IconButton} from 'react-native-paper';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const Header: React.FC<{navigation: any}> = ({navigation}) => {
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Image
+          source={require('../../assets/arrow_back.png')}
+          style={styles.icon}
+        />
+      </TouchableOpacity>
+      <TextInput style={styles.searchInput} placeholder="Search" />
+      <TouchableOpacity onPress={() => console.log('Notification pressed')}>
+        <Image
+          source={require('../../assets/notifications.png')}
+          style={styles.icon}
+        />
+      </TouchableOpacity>
+      <View style={{flex: 0.03}} /> {/* Thêm View này để tạo khoảng cách */}
+      <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <Image
+          source={{uri: 'https://via.placeholder.com/50'}}
+          style={styles.profileImage}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const Footer: React.FC<{navigation: any}> = ({navigation}) => {
+  return (
+    <View style={styles.footer}>
+      <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <Image source={require('../../assets/home.png')} style={styles.icon} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+        <Image
+          source={require('../../assets/shopping_cart.png')}
+          style={styles.icon}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon={({size, color}) => (
-            <Ionicons name="arrow-back-outline" size={size} color={color} />
-          )}
-          onPress={() => navigation.goBack()}
-        />
-        <TextInput style={styles.searchInput} placeholder="Search" />
-        <IconButton
-          icon={({size, color}) => (
-            <Ionicons name="notifications-outline" size={size} color={color} />
-          )}
-          onPress={() => console.log('Notification pressed')}
-        />
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={{uri: 'https://via.placeholder.com/50'}}
-            style={styles.profileImage}
-          />
-        </TouchableOpacity>
-      </View>
+      <Header navigation={navigation} />
       <View style={styles.middle}></View>
-      <View style={styles.footer}></View>
+      <Footer navigation={navigation} />
     </View>
   );
 };
@@ -65,10 +86,11 @@ const styles = StyleSheet.create({
     flex: 2,
   },
   footer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingRight: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    height: 60,
+    backgroundColor: '#e4e4eb', // Màu nền xanh
   },
   profileImage: {
     width: 50,
@@ -76,6 +98,10 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: 'gray',
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });
 
