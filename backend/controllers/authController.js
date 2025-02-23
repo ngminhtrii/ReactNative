@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const {
   generateToken,
@@ -43,7 +44,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({error: 'Invalid email or password'});
     }
     const token = generateToken(user._id);
-    res.status(200).json({message: 'Login successful', token});
+    res
+      .status(200)
+      .json({message: 'Login successful', token, userId: user._id});
   } catch (error) {
     res.status(500).json({error: 'Server error'});
   }
@@ -99,7 +102,10 @@ exports.updateProfile = async (req, res) => {
       user.profileImageUrl = profileImageUrl;
     }
 
-    user.phoneNumber = phoneNumber || user.phoneNumber;
+    if (phoneNumber) {
+      user.phoneNumber = phoneNumber;
+    }
+
     await user.save();
 
     res
@@ -125,5 +131,54 @@ exports.verifyEmailUpdate = async (req, res) => {
     res.status(200).json({message: 'Email updated successfully'});
   } catch (error) {
     res.status(500).json({error: 'Server error'});
+  }
+};
+
+exports.sendOtp = async (req, res) => {
+  try {
+    const {email} = req.body;
+    const otp = generateOTP();
+    await sendOTPEmail(email, otp);
+    res.status(200).json({message: 'OTP sent to email'});
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({error: 'Error sending OTP'});
+  }
+};
+
+exports.verifyOtp = async (req, res) => {
+  try {
+    const {email, otp, phoneNumber} = req.body;
+    const user = await User.findOne({email});
+    if (!user || user.otp !== otp) {
+      return res.status(400).json({error: 'Invalid OTP'});
+    }
+    user.phoneNumber = phoneNumber;
+    user.otp = null;
+    await user.save();
+    res.status(200).json({message: 'Phone number updated successfully'});
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({error: 'Error verifying OTP'});
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const {userId} = req.query;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({error: 'Invalid user ID'});
+    }
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({error: 'User not found'});
+
+    res.status(200).json({
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      profileImageUrl: user.profileImageUrl,
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({error: 'Server error', details: error.message});
   }
 };

@@ -29,3 +29,8 @@ app.use('/uploads', uploadRoutes);
 
 // Start server
 app.listen(5000, () => console.log('Server running on port 5000'));
+
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.url} - ${req.ip}`);
+  next();
+});

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://192.168.1.2:5000';
+axios.defaults.baseURL = 'http://192.168.2.70:5000';
 
 const RegisterOTPScreen = ({
   route,

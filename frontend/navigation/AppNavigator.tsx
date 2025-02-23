@@ -20,7 +20,7 @@ export type RootStackParamList = {
   Onboard: undefined;
   RegisterOTP: {userId: string};
   ForgotPasswordOTP: {userId: string};
-  Profile: undefined;
+  Profile: undefined; // Ensure this matches the screen name used in navigation
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

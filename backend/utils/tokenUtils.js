@@ -11,7 +11,7 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 };
 
-exports.sendOTPEmail = async (email, otp) => {
+const sendOTPEmail = async (email, otp) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -20,14 +20,17 @@ exports.sendOTPEmail = async (email, otp) => {
     },
   });
 
-  await transporter.sendMail({
+  const mailOptions = {
     from: process.env.EMAIL,
     to: email,
     subject: 'Your OTP Code',
-    text: `Your OTP code is: ${otp}`,
-  });
+    text: `Your OTP code is ${otp}`,
+  };
+
+  await transporter.sendMail(mailOptions);
 };
 
+exports.sendOTPEmail = sendOTPEmail;
 exports.generateOTP = generateOTP;
 
 exports.sendResetEmail = async (email, resetToken) => {

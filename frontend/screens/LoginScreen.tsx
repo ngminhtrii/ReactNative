@@ -6,12 +6,14 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-axios.defaults.baseURL = 'http://192.168.111.78:5000';
+axios.defaults.baseURL = 'http://192.168.2.70:5000';
 
-const LoginScreen = ({navigation}: {navigation: any}) => {
+const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -19,21 +21,14 @@ const LoginScreen = ({navigation}: {navigation: any}) => {
   const handleLogin = async () => {
     try {
       const response = await axios.post('/api/auth/login', {email, password});
-      setMessage(response.data.message);
-      navigation.navigate('Home');
+      const {token, userId} = response.data;
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('userId', userId);
+      Alert.alert('Login successful');
+      navigation.navigate('Home'); // Navigate to HomeScreen after successful login
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          setMessage(error.response.data.error);
-        } else if (error.request) {
-          setMessage('Network error. Please check your connection.');
-        } else {
-          setMessage('An unexpected error occurred');
-        }
-      } else {
-        console.error('Unexpected error:', error);
-        setMessage('An unexpected error occurred');
-      }
+      console.error('Error logging in:', error);
+      Alert.alert('Error logging in', (error as any).message);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Button,
@@ -6,26 +6,109 @@ import {
   Alert,
   Image,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'react-native-image-picker';
 import cloudinaryUpload from '../services/uploads';
 
-axios.defaults.baseURL = 'http://192.168.111.78:5000'; // Địa chỉ API của bạn
+axios.defaults.baseURL = 'http://192.168.2.70:5000'; // Ensure this matches your server configuration
 
 const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [profileImageUrl, setProfileImageUrl] = useState(
     'https://via.placeholder.com/150',
   );
   const [imageData, setImageData] = useState<any>(null);
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
-  // Hàm mở thư viện ảnh khi nhấn vào ảnh đại diện
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const userId = await AsyncStorage.getItem('userId');
+        if (!token || !userId) {
+          throw new Error('No token or user ID found');
+        }
+        const response = await axios.get('/api/auth/profile', {
+          params: {userId},
+          headers: {Authorization: `Bearer ${token}`},
+        });
+        const {email, phoneNumber, profileImageUrl} = response.data;
+        setEmail(email);
+        setPhoneNumber(phoneNumber);
+        setProfileImageUrl(
+          profileImageUrl || 'https://via.placeholder.com/150',
+        );
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        Alert.alert('Error fetching profile', (error as any).message);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleUpdateProfile = async () => {
+    try {
+      let uploadedImageUrl = profileImageUrl;
+
+      if (imageData) {
+        const uploadData = new FormData();
+        uploadData.append('file', {
+          uri: imageData.uri,
+          type: 'image/jpeg', // Ensure the image format is correct
+          name: 'profile.jpg',
+        });
+
+        const uploadResponse = await cloudinaryUpload(uploadData);
+        if (uploadResponse && uploadResponse.secure_url) {
+          uploadedImageUrl = uploadResponse.secure_url;
+        } else {
+          throw new Error('Upload failed');
+        }
+      }
+
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      if (!token || !userId) {
+        throw new Error('No token or user ID found');
+      }
+
+      const response = await axios.post(
+        '/api/auth/update-profile',
+        {
+          userId,
+          email,
+          phoneNumber,
+          profileImageUrl: uploadedImageUrl,
+        },
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
+
+      if (email) {
+        setIsOtpSent(true);
+        Alert.alert('OTP sent to your email');
+      } else {
+        Alert.alert(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data);
+      }
+      Alert.alert('Error updating profile', (error as any).message);
+    }
+  };
+
   const handleSelectImage = () => {
     ImagePicker.launchImageLibrary(
-      {
-        mediaType: 'photo',
-        includeBase64: false,
-      },
+      {mediaType: 'photo', includeBase64: false},
       response => {
         if (response.didCancel) {
           console.log('User cancelled image picker');
@@ -41,45 +124,63 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
     );
   };
 
-  // Cập nhật ảnh đại diện lên server
-  const handleUpdateProfile = async () => {
+  const handleVerifyOtp = async () => {
     try {
-      let uploadedImageUrl = profileImageUrl;
-
-      if (imageData) {
-        const uploadData = new FormData();
-        uploadData.append('file', {
-          uri: imageData.uri,
-          type: 'image/jpeg',
-          name: 'profile.jpg',
-        });
-
-        const uploadResponse = await cloudinaryUpload(uploadData);
-        uploadedImageUrl = uploadResponse.secure_url;
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
       }
-
-      const response = await axios.post('/api/auth/update-profile', {
-        userId: 'user-id', // Thay bằng user ID thực tế
-        profileImageUrl: uploadedImageUrl,
-      });
-
+      const response = await axios.post(
+        '/api/auth/verify-otp',
+        {
+          email,
+          otp,
+          phoneNumber,
+        },
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
       Alert.alert(response.data.message);
+      setIsOtpSent(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', error.response?.data);
-      }
-      Alert.alert('Lỗi cập nhật', (error as any).message);
+      console.error('Error verifying OTP:', error);
+      Alert.alert('Error verifying OTP', (error as any).message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleSelectImage}>
-        <Image source={{uri: profileImageUrl}} style={styles.avatar} />
-      </TouchableOpacity>
-
-      <Button title="Cập nhật ảnh đại diện" onPress={handleUpdateProfile} />
+      {!isOtpSent ? (
+        <>
+          <TouchableOpacity onPress={handleSelectImage}>
+            <Image source={{uri: profileImageUrl}} style={styles.avatar} />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+          />
+          <Button title="Update Profile" onPress={handleUpdateProfile} />
+        </>
+      ) : (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter OTP"
+            value={otp}
+            onChangeText={setOtp}
+          />
+          <Button title="Verify OTP" onPress={handleVerifyOtp} />
+        </>
+      )}
     </View>
   );
 };
@@ -88,15 +189,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    alignItems: 'center',
   },
   avatar: {
     width: 150,
     height: 150,
     borderRadius: 75,
-    borderWidth: 2,
-    borderColor: '#000',
+    alignSelf: 'center',
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#000', // Viền đen
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 12,
+    paddingHorizontal: 8,
   },
 });
 

@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  phoneNumber: {
+    type: String,
+  },
+  profileImageUrl: {
+    type: String,
+  },
   resetToken: String, // Token để reset password
   resetTokenExpiry: Date, // Thời gian hết hạn token
   otp: String,
