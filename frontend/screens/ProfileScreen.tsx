@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'react-native-image-picker';
 import cloudinaryUpload from '../services/uploads';
 
-axios.defaults.baseURL = 'http://192.168.2.70:5000'; // Ensure this matches your server configuration
+axios.defaults.baseURL = 'http://192.168.111.78:5000'; // Ensure this matches your server configuration
 
 const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [profileImageUrl, setProfileImageUrl] = useState(
