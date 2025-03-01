@@ -75,3 +75,12 @@ yarn-error.log
 
 # Ignore environment variables
 .env
+
+# Ignore debug keystore
+android/app/debug.keystore
+
+# Ignore bundle config
+.bundle/config
+
+# Ignore gradle wrapper jar
+android/gradle/wrapper/gradle-wrapper.jar
