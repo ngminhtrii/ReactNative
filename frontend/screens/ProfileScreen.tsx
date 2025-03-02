@@ -10,19 +10,17 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'react-native-image-picker';
-import cloudinaryUpload from '../services/uploads';
+import config from '../config/config';
 
-axios.defaults.baseURL = 'http://192.168.111.78:5000'; // Ensure this matches your server configuration
+axios.defaults.baseURL = config.baseURL;
 
 const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [profileImageUrl, setProfileImageUrl] = useState(
     'https://via.placeholder.com/150',
   );
-  const [imageData, setImageData] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [initialPhoneNumber, setInitialPhoneNumber] = useState(''); // New state for initial phone number
+  const [initialPhoneNumber, setInitialPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
 
@@ -41,7 +39,7 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
         const {email, phoneNumber, profileImageUrl} = response.data;
         setEmail(email);
         setPhoneNumber(phoneNumber);
-        setInitialPhoneNumber(phoneNumber); // Set initial phone number
+        setInitialPhoneNumber(phoneNumber);
         setProfileImageUrl(
           profileImageUrl || 'https://via.placeholder.com/150',
         );
@@ -56,24 +54,6 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   const handleUpdateProfile = async () => {
     try {
-      let uploadedImageUrl = profileImageUrl;
-
-      if (imageData) {
-        const uploadData = new FormData();
-        uploadData.append('file', {
-          uri: imageData.uri,
-          type: 'image/jpeg', // Ensure the image format is correct
-          name: 'profile.jpg',
-        });
-
-        const uploadResponse = await cloudinaryUpload(uploadData);
-        if (uploadResponse && uploadResponse.secure_url) {
-          uploadedImageUrl = uploadResponse.secure_url;
-        } else {
-          throw new Error('Upload failed');
-        }
-      }
-
       const token = await AsyncStorage.getItem('token');
       const userId = await AsyncStorage.getItem('userId');
       if (!token || !userId) {
@@ -86,7 +66,7 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
           userId,
           email,
           phoneNumber,
-          profileImageUrl: uploadedImageUrl,
+          profileImageUrl,
         },
         {
           headers: {Authorization: `Bearer ${token}`},
@@ -95,7 +75,6 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
       if (response.data.message === 'Profile updated successfully') {
         if (phoneNumber !== initialPhoneNumber) {
-          // Check if phone number has changed
           setIsOtpSent(true);
           Alert.alert('OTP sent to your email');
         } else {
@@ -111,24 +90,6 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
       }
       Alert.alert('Error updating profile', (error as any).message);
     }
-  };
-
-  const handleSelectImage = () => {
-    ImagePicker.launchImageLibrary(
-      {mediaType: 'photo', includeBase64: false},
-      response => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          console.log('ImagePicker Error Code: ', response.errorCode);
-          console.log('ImagePicker Error Message: ', response.errorMessage);
-        } else if (response.assets && response.assets.length > 0) {
-          const source = {uri: response.assets[0].uri || ''};
-          setProfileImageUrl(source.uri);
-          setImageData(response.assets[0]);
-        }
-      },
-    );
   };
 
   const handleVerifyOtp = async () => {
@@ -160,14 +121,14 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
     <View style={styles.container}>
       {!isOtpSent ? (
         <>
-          <TouchableOpacity onPress={handleSelectImage}>
+          <TouchableOpacity>
             <Image source={{uri: profileImageUrl}} style={styles.avatar} />
           </TouchableOpacity>
           <TextInput
             style={styles.input}
             placeholder="Email"
             value={email}
-            editable={false} // Disable email input
+            editable={false}
           />
           <TextInput
             style={styles.input}

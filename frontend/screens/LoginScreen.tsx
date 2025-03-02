@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from '../config/config';
 
-axios.defaults.baseURL = 'http://192.168.111.78:5000';
+axios.defaults.baseURL = config.baseURL;
 
 const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [email, setEmail] = useState('');
