@@ -22,14 +22,14 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const handleLogin = async () => {
     try {
       const response = await axios.post('/api/auth/login', {email, password});
-      const {token, userId} = response.data;
+      const {token, user} = response.data;
       await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('userId', userId);
-      Alert.alert('Login successful');
-      navigation.navigate('Home'); // Navigate to HomeScreen after successful login
+      await AsyncStorage.setItem('userId', user._id);
+      Alert.alert('Đăng nhập thành công');
+      navigation.navigate('Home');
     } catch (error) {
       console.error('Error logging in:', error);
-      Alert.alert('Error logging in', (error as any).message);
+      Alert.alert('Error logging in', (error as any).response.data.message);
     }
   };
 

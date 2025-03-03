@@ -18,7 +18,7 @@ const RegisterOTPScreen = ({
 
   const handleVerifyOTP = async () => {
     try {
-      const response = await axios.post('/api/auth/verify-register', {
+      const response = await axios.post('/api/auth/verify-otp', {
         userId,
         otp,
       });

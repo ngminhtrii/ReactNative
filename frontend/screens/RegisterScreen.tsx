@@ -8,14 +8,16 @@ axios.defaults.baseURL = config.baseURL;
 const RegisterScreen = ({navigation}: {navigation: any}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [userId, setUserId] = useState('');
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await axios.post('/api/auth/signup', {
         email,
         password,
+        name,
       });
       setMessage(response.data.message);
       setUserId(response.data.userId);
@@ -32,6 +34,12 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
 
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
