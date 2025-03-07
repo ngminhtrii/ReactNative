@@ -35,6 +35,9 @@ const AuthSchema = new mongoose.Schema({
   image: {
     type: String,
   },
+  otp: {
+    type: String, // Đảm bảo rằng trường otp là kiểu chuỗi
+  },
 });
 
 AuthSchema.add(BaseSchema);

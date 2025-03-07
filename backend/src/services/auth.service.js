@@ -58,25 +58,29 @@ const sendOtpService = async data => {
     if (!user) {
       throw new Error('Email chưa đăng ký');
     }
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Chuyển OTP thành chuỗi
     user.otp = otp;
     await user.save();
-    await sendMail(email, 'confirm your OTP', `OTP: ${otp}`);
+    await sendMail(email, 'Xác nhận OTP của bạn', `OTP: ${otp}`);
   } catch (err) {
+    console.error('Error in sendOtpService: ', err);
     throw new Error(err.message);
   }
 };
 
 const verifyOTPService = async data => {
   try {
-    const {email, otp} = data;
-    const user = await User.findOne({email});
+    const {userId, otp} = data;
+    const user = await User.findById(userId);
     if (!user) {
       throw new Error('Không tìm thấy người dùng');
     }
     if (user.otp !== otp) {
       throw new Error('OTP không đúng');
     }
+    // Xóa OTP sau khi xác nhận thành công
+    user.otp = null;
+    await user.save();
   } catch (error) {
     throw new Error(error.message);
   }

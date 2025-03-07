@@ -21,6 +21,10 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
       });
       setMessage(response.data.message);
       setUserId(response.data.userId);
+
+      // Gửi OTP sau khi đăng ký thành công
+      await axios.post('/api/auth/send-otp', {email});
+
       navigation.navigate('RegisterOTP', {userId: response.data.userId});
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
