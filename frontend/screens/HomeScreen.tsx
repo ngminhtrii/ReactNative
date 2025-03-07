@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,7 +6,12 @@ import {
   Image,
   TextInput,
   Text,
+  FlatList,
 } from 'react-native';
+import axios from 'axios';
+import config from '../config/config';
+
+axios.defaults.baseURL = config.baseURL;
 
 const Header: React.FC<{navigation: any}> = ({navigation}) => {
   return (
@@ -61,12 +66,45 @@ const Footer: React.FC<{navigation: any}> = ({navigation}) => {
 };
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('/api/products');
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const renderItem = ({
+    item,
+  }: {
+    item: {_id: string; images: string[]; name: string};
+  }) => (
+    <TouchableOpacity
+      style={styles.productContainer}
+      onPress={() =>
+        navigation.navigate('ProductDetail', {productId: item._id})
+      }>
+      <Image source={{uri: item.images[0]}} style={styles.productImage} />
+      <Text style={styles.productName}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <Header navigation={navigation} />
-      <View style={styles.middle}>
-        <Text> </Text> {/* Thêm Text để tránh lỗi */}
-      </View>
+      <FlatList
+        data={products}
+        renderItem={renderItem}
+        keyExtractor={item => item._id}
+        contentContainerStyle={styles.productList}
+      />
       <Footer navigation={navigation} />
     </View>
   );
@@ -116,6 +154,22 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+  },
+  productList: {
+    padding: 16,
+  },
+  productContainer: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  productImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 8,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -11,6 +11,7 @@ import RegisterOTPScreen from '../screens/RegisterOTPScreen';
 import ForgotPasswordOTPScreen from '../screens/ForgotPasswordOTPScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import AddProductScreen from '../screens/AddProductScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen'; // Thêm dòng này
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   ForgotPasswordOTP: {userId: string};
   Profile: undefined;
   AddProduct: undefined;
+  ProductDetail: {productId: string}; // Thêm dòng này
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -56,6 +58,8 @@ const AppNavigator = () => {
         />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="AddProduct" component={AddProductScreen} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        {/* Thêm dòng này */}
       </Stack.Navigator>
     </NavigationContainer>
   );
