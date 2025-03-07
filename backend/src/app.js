@@ -11,7 +11,7 @@ const cartRouter = require('./routes/cart.route');
 const reviewRouter = require('./routes/review.route');
 const paymentRouter = require('./routes/payment.route');
 const categoryRouter = require('./routes/category.route');
-const aurhRouter = require('./routes/auth.route');
+const authRouter = require('./routes/auth.route');
 
 const app = express();
 
@@ -32,6 +32,6 @@ app.use('/api/cart', cartRouter);
 app.use('/api/reviews', reviewRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/categories', categoryRouter);
-app.use('/api/auth', aurhRouter);
+app.use('/api/auth', authRouter);
 
 module.exports = app;

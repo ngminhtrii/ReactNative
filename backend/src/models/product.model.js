@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const BaseSchema = require("./base.model");
+const mongoose = require('mongoose');
+const BaseSchema = require('./base.model');
 
 const ProductSchema = new mongoose.Schema({
   name: {
@@ -14,20 +14,16 @@ const ProductSchema = new mongoose.Schema({
     required: true,
   },
   category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",
+    type: String, // Thay đổi kiểu dữ liệu nếu cần
   },
   brand: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Brand",
+    type: String, // Thay đổi kiểu dữ liệu nếu cần
   },
   size: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Size",
+    type: [String], // Thay đổi kiểu dữ liệu nếu cần
   },
   color: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Color",
+    type: [String], // Thay đổi kiểu dữ liệu nếu cần
   },
   rating: {
     type: Number,
@@ -37,7 +33,7 @@ const ProductSchema = new mongoose.Schema({
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
       comment: {
         type: String,
@@ -54,6 +50,6 @@ const ProductSchema = new mongoose.Schema({
 
 ProductSchema.add(BaseSchema);
 
-const Product = mongoose.model("Product", ProductSchema);
+const Product = mongoose.model('Product', ProductSchema);
 
 module.exports = Product;

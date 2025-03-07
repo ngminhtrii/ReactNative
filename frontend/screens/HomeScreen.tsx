@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Image,
   TextInput,
+  Text,
 } from 'react-native';
 
 const Header: React.FC<{navigation: any}> = ({navigation}) => {
@@ -16,14 +17,20 @@ const Header: React.FC<{navigation: any}> = ({navigation}) => {
           style={styles.icon}
         />
       </TouchableOpacity>
-      <TextInput style={styles.searchInput} placeholder="Search" />
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search"
+        placeholderTextColor="gray"
+      />
       <TouchableOpacity onPress={() => console.log('Notification pressed')}>
         <Image
           source={require('../../assets/notifications.png')}
           style={styles.icon}
         />
       </TouchableOpacity>
-      <View style={{flex: 0.03}} /> {/* Thêm View này để tạo khoảng cách */}
+      <View style={{flex: 0.03}}>
+        <Text> </Text> {/* Thêm Text để tránh lỗi */}
+      </View>
       <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
         <Image
           source={{uri: 'https://via.placeholder.com/50'}}
@@ -46,6 +53,9 @@ const Footer: React.FC<{navigation: any}> = ({navigation}) => {
           style={styles.icon}
         />
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('AddProduct')}>
+        <Image source={require('../../assets/add.png')} style={styles.icon} />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -54,7 +64,9 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   return (
     <View style={styles.container}>
       <Header navigation={navigation} />
-      <View style={styles.middle}></View>
+      <View style={styles.middle}>
+        <Text> </Text> {/* Thêm Text để tránh lỗi */}
+      </View>
       <Footer navigation={navigation} />
     </View>
   );
@@ -84,6 +96,8 @@ const styles = StyleSheet.create({
   },
   middle: {
     flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footer: {
     flexDirection: 'row',
