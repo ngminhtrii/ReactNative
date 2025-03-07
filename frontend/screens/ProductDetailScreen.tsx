@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, Button, Alert} from 'react-native';
 import axios from 'axios';
 import config from '../config/config';
 
 axios.defaults.baseURL = config.baseURL;
 
-const ProductDetailScreen: React.FC<{route: any}> = ({route}) => {
+const ProductDetailScreen: React.FC<{route: any; navigation: any}> = ({
+  route,
+  navigation,
+}) => {
   const {productId} = route.params;
   interface Product {
     images: string[];
@@ -33,6 +36,17 @@ const ProductDetailScreen: React.FC<{route: any}> = ({route}) => {
     fetchProduct();
   }, [productId]);
 
+  const handleDeleteProduct = async () => {
+    try {
+      await axios.delete(`/api/products/${productId}`);
+      Alert.alert('Success', 'Product deleted successfully');
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      Alert.alert('Error', 'Failed to delete product');
+    }
+  };
+
   if (!product) {
     return (
       <View style={styles.container}>
@@ -51,6 +65,15 @@ const ProductDetailScreen: React.FC<{route: any}> = ({route}) => {
       <Text style={styles.productBrand}>Brand: {product.brand}</Text>
       <Text style={styles.productSize}>Size: {product.size.join(', ')}</Text>
       <Text style={styles.productColor}>Color: {product.color.join(', ')}</Text>
+      <Button
+        title="Edit Product"
+        onPress={() => navigation.navigate('EditProduct', {productId})}
+      />
+      <Button
+        title="Delete Product"
+        onPress={handleDeleteProduct}
+        color="red"
+      />
     </View>
   );
 };
