@@ -1,154 +1,122 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
+  TextInput,
   Button,
   StyleSheet,
-  Alert,
+  Text,
   Image,
+  Alert,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config/config';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 axios.defaults.baseURL = config.baseURL;
 
 const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
-  const [profileImageUrl, setProfileImageUrl] = useState(
-    'https://via.placeholder.com/150',
-  );
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [initialPhoneNumber, setInitialPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [user, setUser] = useState<{
+    image: string;
+    name: string;
+    email: string;
+    phone: string;
+  } | null>(null);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUser = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const userId = await AsyncStorage.getItem('userId');
-        if (!token || !userId) {
-          throw new Error('No token or user ID found');
-        }
-        const response = await axios.get('/api/auth/profile', {
-          params: {userId},
+        const response = await axios.get('/api/users/me', {
           headers: {Authorization: `Bearer ${token}`},
         });
-        const {email, phoneNumber, profileImageUrl} = response.data;
-        setEmail(email);
-        setPhoneNumber(phoneNumber);
-        setInitialPhoneNumber(phoneNumber);
-        setProfileImageUrl(
-          profileImageUrl || 'https://via.placeholder.com/150',
-        );
+        setUser(response.data);
       } catch (error) {
-        console.error('Error fetching profile:', error);
-        Alert.alert('Error fetching profile', (error as any).message);
+        console.error('Error fetching user:', error);
+        Alert.alert('Error', 'Failed to fetch user data');
       }
     };
 
-    fetchProfile();
+    fetchUser();
   }, []);
 
   const handleUpdateProfile = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const userId = await AsyncStorage.getItem('userId');
-      if (!token || !userId) {
-        throw new Error('No token or user ID found');
-      }
-
-      const response = await axios.post(
-        '/api/auth/update-profile',
-        {
-          userId,
-          email,
-          phoneNumber,
-          profileImageUrl,
-        },
-        {
-          headers: {Authorization: `Bearer ${token}`},
-        },
-      );
-
-      if (response.data.message === 'Profile updated successfully') {
-        if (phoneNumber !== initialPhoneNumber) {
-          setIsOtpSent(true);
-          Alert.alert('OTP sent to your email');
-        } else {
-          Alert.alert('Profile updated successfully');
-        }
-      } else {
-        Alert.alert(response.data.message);
-      }
+      await axios.put('/api/users/me', user, {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      setMessage('Profile updated successfully');
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', error.response?.data);
-      }
-      Alert.alert('Error updating profile', (error as any).message);
+      setMessage('Failed to update profile');
+      Alert.alert('Error', 'Failed to update profile');
     }
   };
 
-  const handleVerifyOtp = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
+  const handleSelectImage = () => {
+    const options = {
+      mediaType: 'photo' as const,
+      quality: 1 as const,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorMessage) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const selectedImage = response.assets[0].uri;
+        if (selectedImage) {
+          setUser(prevUser =>
+            prevUser ? {...prevUser, image: selectedImage} : null,
+          );
+        }
       }
-      const response = await axios.post(
-        '/api/auth/verify-otp',
-        {
-          email,
-          otp,
-          phoneNumber,
-        },
-        {
-          headers: {Authorization: `Bearer ${token}`},
-        },
-      );
-      Alert.alert(response.data.message);
-      setIsOtpSent(false);
-    } catch (error) {
-      console.error('Error verifying OTP:', error);
-      Alert.alert('Error verifying OTP', (error as any).message);
-    }
+    });
   };
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {!isOtpSent ? (
-        <>
-          <TouchableOpacity>
-            <Image source={{uri: profileImageUrl}} style={styles.avatar} />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            editable={false}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-          />
-          <Button title="Update Profile" onPress={handleUpdateProfile} />
-        </>
-      ) : (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter OTP"
-            value={otp}
-            onChangeText={setOtp}
-          />
-          <Button title="Verify OTP" onPress={handleVerifyOtp} />
-        </>
-      )}
+      <TouchableOpacity onPress={handleSelectImage}>
+        <Image
+          source={{uri: user.image || 'https://via.placeholder.com/100'}}
+          style={styles.profileImage}
+        />
+      </TouchableOpacity>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={user.name}
+        onChangeText={name => setUser({...user, name})}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={user.email}
+        onChangeText={email => setUser({...user, email})}
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Phone"
+        value={user.phone}
+        onChangeText={phone => setUser({...user, phone})}
+        keyboardType="phone-pad"
+      />
+      <Button title="Update Profile" onPress={handleUpdateProfile} />
+      {message ? <Text>{message}</Text> : null}
     </View>
   );
 };
@@ -156,16 +124,8 @@ const ProfileScreen: React.FC<{navigation: any}> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
     padding: 16,
-  },
-  avatar: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    alignSelf: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#000', // Viền đen
   },
   input: {
     height: 40,
@@ -173,6 +133,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 16,
   },
 });
 

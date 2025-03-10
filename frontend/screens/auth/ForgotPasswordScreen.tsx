@@ -1,31 +1,21 @@
 import React, {useState} from 'react';
 import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
 import axios from 'axios';
-import config from '../config/config';
+import config from '../../config/config';
 
 axios.defaults.baseURL = config.baseURL;
 
-const RegisterScreen = ({navigation}: {navigation: any}) => {
+const ForgotPasswordScreen = ({navigation}: {navigation: any}) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [userId, setUserId] = useState('');
 
-  const handleRegister = async () => {
+  const handleForgotPassword = async () => {
     try {
-      const response = await axios.post('/api/auth/signup', {
-        email,
-        password,
-        name,
-      });
+      const response = await axios.post('/api/auth/forget-password', {email});
       setMessage(response.data.message);
       setUserId(response.data.userId);
-
-      // Gửi OTP sau khi đăng ký thành công
-      await axios.post('/api/auth/send-otp', {email});
-
-      navigation.navigate('RegisterOTP', {userId: response.data.userId});
+      navigation.navigate('ForgotPasswordOTP', {userId: response.data.userId});
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);
@@ -40,24 +30,11 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button title="Register" onPress={handleRegister} />
+      <Button title="Reset Password" onPress={handleForgotPassword} />
       {message ? <Text>{message}</Text> : null}
     </View>
   );
@@ -78,4 +55,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+export default ForgotPasswordScreen;

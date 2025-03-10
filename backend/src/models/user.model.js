@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const BaseSchema = require('./base.model');
 
-const AuthSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -36,12 +36,12 @@ const AuthSchema = new mongoose.Schema({
     type: String,
   },
   otp: {
-    type: String, // Đảm bảo rằng trường otp là kiểu chuỗi
+    type: String,
   },
 });
 
-AuthSchema.add(BaseSchema);
+UserSchema.add(BaseSchema);
 
-const Auth = mongoose.model('Auth', AuthSchema);
+const User = mongoose.model('User', UserSchema);
 
-module.exports = Auth;
+module.exports = User;

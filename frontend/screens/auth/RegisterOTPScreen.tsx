@@ -1,21 +1,29 @@
 import React, {useState} from 'react';
 import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
 import axios from 'axios';
-import config from '../config/config';
+import config from '../../config/config';
 
 axios.defaults.baseURL = config.baseURL;
 
-const ForgotPasswordScreen = ({navigation}: {navigation: any}) => {
-  const [email, setEmail] = useState('');
+const RegisterOTPScreen = ({
+  route,
+  navigation,
+}: {
+  route: any;
+  navigation: any;
+}) => {
+  const {userId} = route.params;
+  const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('');
-  const [userId, setUserId] = useState('');
 
-  const handleForgotPassword = async () => {
+  const handleVerifyOTP = async () => {
     try {
-      const response = await axios.post('/api/auth/forget-password', {email});
+      const response = await axios.post('/api/auth/verify-otp', {
+        userId,
+        otp,
+      });
       setMessage(response.data.message);
-      setUserId(response.data.userId);
-      navigation.navigate('ForgotPasswordOTP', {userId: response.data.userId});
+      navigation.navigate('Login');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);
@@ -30,11 +38,11 @@ const ForgotPasswordScreen = ({navigation}: {navigation: any}) => {
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        placeholder="Enter OTP"
+        value={otp}
+        onChangeText={setOtp}
       />
-      <Button title="Reset Password" onPress={handleForgotPassword} />
+      <Button title="Verify OTP" onPress={handleVerifyOTP} />
       {message ? <Text>{message}</Text> : null}
     </View>
   );
@@ -55,4 +63,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ForgotPasswordScreen;
+export default RegisterOTPScreen;
