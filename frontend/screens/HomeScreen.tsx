@@ -1,84 +1,152 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
   Image,
   Text,
-  FlatList,
   TouchableOpacity,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
-import axios from 'axios';
-import config from '../config/config';
 import Header from '../layout/navbar/main/Header';
 import Footer from '../layout/navbar/main/Footer';
+import CustomSwipper from '../components/Custom/CustomSwipper';
 
-axios.defaults.baseURL = config.baseURL;
+const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('/api/products');
-        setProducts(response.data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  const renderItem = ({
-    item,
-  }: {
-    item: {_id: string; images: string[]; name: string};
-  }) => (
-    <TouchableOpacity
-      style={styles.productContainer}
-      onPress={() =>
-        navigation.navigate('ProductDetail', {productId: item._id})
-      }>
-      <Image source={{uri: item.images[0]}} style={styles.productImage} />
-      <Text style={styles.productName}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={styles.container}>
+    <View style={{flex: 1}}>
       <Header navigation={navigation} />
-      <FlatList
-        data={products}
-        renderItem={renderItem}
-        keyExtractor={item => item._id}
-        contentContainerStyle={styles.productList}
-      />
+      <ScrollView
+        style={[styles.container, {paddingTop: 80, paddingBottom: 60}]}>
+        <CustomSwipper
+          images={[
+            {
+              url: 'https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/mwc.jpg?alt=media&token=30fda9a4-0580-4f0a-8804-90bc66c92946',
+            },
+            {
+              url: 'https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/mwc%20(1).jpg?alt=media&token=8d01ac71-bcf4-4a81-8a03-2e41dba04e6e',
+            },
+          ]}
+          height={300}
+          autoPlay={true}
+          interval={3000}
+          showPagination={true}
+          //showNavigation={true}
+        />
+
+        {/* SẢN PHẨM BÁN CHẠY */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SẢN PHẨM BÁN CHẠY</Text>
+          <View style={styles.productRow}>
+            <ProductCard
+              navigation={navigation}
+              image="https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/mwc%20(2).jpg?alt=media&token=79e7a687-b564-45c2-830e-58a4255de418"
+              name="Giày Sandal Nam 7081 - Sandal Nam Quai Ngang Chéo Phối Lót Dán"
+              price="1.000.000 đ"
+              route="ProductDetail"
+            />
+            <ProductCard
+              navigation={navigation}
+              image="https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/mwc%20(3).jpg?alt=media&token=caff3f3a-345f-432b-924f-d167d0a87cc3"
+              name="Giày Sneaker Nam 1234 - Sneaker Nam Thời Trang"
+              price="1.200.000 đ"
+              route="ProductDetail2"
+            />
+          </View>
+        </View>
+
+        {/* SẢN PHẨM MỚI */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SẢN PHẨM MỚI</Text>
+          <View style={styles.productRow}>
+            <ProductCard
+              navigation={navigation}
+              image="https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/mwc%20(4).jpg?alt=media&token=e922507e-038b-41b0-82f9-77e5097642f9"
+              name="Giày Thể Thao Nam 5678 - Thời Trang, Năng Động"
+              price="1.500.000 đ"
+              route="ProductDetail3"
+            />
+            <ProductCard
+              navigation={navigation}
+              image="https://firebasestorage.googleapis.com/v0/b/refreshing-well-408704.appspot.com/o/5779.jpg?alt=media&token=56db3d67-86f3-4940-829a-34e5016f1525"
+              name="Giày Cao Cổ Nam 3456 - Phong Cách, Cá Tính"
+              price="1.400.000 đ"
+              route="ProductDetail4"
+            />
+          </View>
+        </View>
+      </ScrollView>
       <Footer navigation={navigation} />
     </View>
+  );
+};
+
+const ProductCard = ({
+  navigation,
+  image,
+  name,
+  price,
+  route,
+}: {
+  navigation: any;
+  image: string;
+  name: string;
+  price: string;
+  route: string;
+}) => {
+  return (
+    <TouchableOpacity
+      style={styles.productContainer}
+      onPress={() => navigation.navigate(route, {name, image, price})}>
+      <Image source={{uri: image}} style={styles.productImage} />
+      <Text style={styles.productName} numberOfLines={2}>
+        {name}
+      </Text>
+      <Text style={styles.productPrice}>{price}</Text>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Màu nền trắng
+    backgroundColor: '#fff',
   },
-  productList: {
+  section: {
     padding: 16,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  productRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   productContainer: {
-    marginBottom: 16,
+    width: '48%',
     alignItems: 'center',
+    marginBottom: 16,
   },
   productImage: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
     marginBottom: 8,
   },
   productName: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  productPrice: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
   },
 });
 

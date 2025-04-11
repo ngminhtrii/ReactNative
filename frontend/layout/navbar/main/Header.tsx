@@ -13,7 +13,7 @@ const Header: React.FC<{navigation: any}> = ({navigation}) => {
     <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Image
-          source={require('../../../../assets/arrow_back.png')} // Path is correct
+          source={require('../../../../assets/arrow_back.png')} // Corrected path
           style={styles.icon}
         />
       </TouchableOpacity>
@@ -24,7 +24,7 @@ const Header: React.FC<{navigation: any}> = ({navigation}) => {
       />
       <TouchableOpacity onPress={() => console.log('Notification pressed')}>
         <Image
-          source={require('../../../../assets/notifications.png')} // Path is correct
+          source={require('../../../../assets/notifications.png')} // Corrected path
           style={styles.icon}
         />
       </TouchableOpacity>
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     width: '100%',
-    zIndex: 1,
+    zIndex: 2, // Ensure it stays above other content
   },
   searchInput: {
     flex: 1,

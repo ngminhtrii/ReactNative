@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 16,
-    paddingTop: 80, // ✅ thêm dòng này để đẩy nội dung xuống dưới header
+    paddingTop: 80, // Ensure content starts below the header
+    paddingBottom: 60, // Ensure content ends above the footer
   },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',

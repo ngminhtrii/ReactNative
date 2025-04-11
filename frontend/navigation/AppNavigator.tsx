@@ -58,26 +58,71 @@ const AppNavigator = () => {
           component={HomeScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="RegisterOTP" component={RegisterOTPScreen} />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="RegisterOTP"
+          component={RegisterOTPScreen}
+          options={{headerShown: false}}
+        />
         <Stack.Screen
           name="ForgotPasswordOTP"
           component={ForgotPasswordOTPScreen}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Profile"
           component={ProfileScreen}
           options={{headerShown: false}} //dòng này để ẩn header
         />
-        <Stack.Screen name="AddProduct" component={AddProductScreen} />
-        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-        <Stack.Screen name="EditProduct" component={EditProductScreen} />
-        <Stack.Screen name="ProfileUser" component={ProfileUser} />
-        <Stack.Screen name="Discount" component={Discount} />
-        <Stack.Screen name="ProductLike" component={ProductLike} />
-        <Stack.Screen name="Order" component={Order} />
+        <Stack.Screen
+          name="AddProduct"
+          component={AddProductScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProductDetail"
+          component={ProductDetailScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="EditProduct"
+          component={EditProductScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProfileUser"
+          component={ProfileUser}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Discount"
+          component={Discount}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProductLike"
+          component={ProductLike}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Order"
+          component={Order}
+          options={{headerShown: false}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

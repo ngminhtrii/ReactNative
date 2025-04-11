@@ -6,19 +6,19 @@ const Footer: React.FC<{navigation: any}> = ({navigation}) => {
     <View style={styles.footer}>
       <TouchableOpacity onPress={() => navigation.navigate('Home')}>
         <Image
-          source={require('../../../../assets/home.png')} // Path is correct
+          source={require('../../../../assets/home.png')} // Corrected path
           style={styles.icon}
         />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
         <Image
-          source={require('../../../../assets/shopping_cart.png')} // Path is correct
+          source={require('../../../../assets/shopping_cart.png')} // Corrected path
           style={styles.icon}
         />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('AddProduct')}>
         <Image
-          source={require('../../../../assets/add.png')} // Path is correct
+          source={require('../../../../assets/add.png')} // Corrected path
           style={styles.icon}
         />
       </TouchableOpacity>
@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
+    zIndex: 1, // Ensure it stays above other content
   },
   icon: {
     width: 24,
