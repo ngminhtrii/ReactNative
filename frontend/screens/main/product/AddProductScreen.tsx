@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
-import config from '../config/config';
+import config from '../../../config/config';
 import {launchImageLibrary} from 'react-native-image-picker';
 
 axios.defaults.baseURL = config.baseURL;

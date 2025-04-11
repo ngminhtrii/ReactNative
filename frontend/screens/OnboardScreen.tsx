@@ -23,12 +23,12 @@ const OnboardScreen = ({navigation}: {navigation: any}) => {
     if (currentImageIndex < onboardImages.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
     } else {
-      navigation.replace('Login');
+      navigation.replace('Home');
     }
   };
 
   const handleSkip = () => {
-    navigation.replace('Login');
+    navigation.replace('Home');
   };
 
   return (

@@ -19,9 +19,11 @@ const auth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Decoded token:', decoded); // Log decoded token
     req.user = decoded;
     next();
   } catch (error) {
+    console.error('Error verifying token:', error); // Log error
     res.status(400).json({EC: -999, DT: null, EM: 'Invalid token.'});
   }
 };

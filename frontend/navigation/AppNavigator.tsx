@@ -9,10 +9,14 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OnboardScreen from '../screens/OnboardScreen';
 import RegisterOTPScreen from '../screens/auth/RegisterOTPScreen';
 import ForgotPasswordOTPScreen from '../screens/auth/ForgotPasswordOTPScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import AddProductScreen from '../screens/AddProductScreen';
-import ProductDetailScreen from '../screens/ProductDetailScreen';
-import EditProductScreen from '../screens/EditProductScreen'; // Thêm dòng này
+import ProfileScreen from '../screens/main/profile/HomeProfile';
+import AddProductScreen from '../screens/main/product/AddProductScreen';
+import ProductDetailScreen from '../screens/main/product/ProductDetailScreen';
+import EditProductScreen from '../screens/main/product/EditProductScreen';
+import ProfileUser from '../screens/main/profile/ProfileUser';
+import Discount from '../screens/main/profile/Discount';
+import ProductLike from '../screens/main/profile/ProductLike';
+import Order from '../screens/main/profile/Order';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -27,6 +31,10 @@ export type RootStackParamList = {
   AddProduct: undefined;
   ProductDetail: {productId: string};
   EditProduct: {productId: string}; // Thêm dòng này
+  ProfileUser: undefined;
+  Discount: undefined;
+  ProductLike: undefined;
+  Order: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -62,7 +70,10 @@ const AppNavigator = () => {
         <Stack.Screen name="AddProduct" component={AddProductScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="EditProduct" component={EditProductScreen} />
-        {/* Thêm dòng này */}
+        <Stack.Screen name="ProfileUser" component={ProfileUser} />
+        <Stack.Screen name="Discount" component={Discount} />
+        <Stack.Screen name="ProductLike" component={ProductLike} />
+        <Stack.Screen name="Order" component={Order} />
       </Stack.Navigator>
     </NavigationContainer>
   );

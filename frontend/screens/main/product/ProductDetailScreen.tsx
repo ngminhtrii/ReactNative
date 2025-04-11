@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, Image, StyleSheet, Button, Alert} from 'react-native';
 import axios from 'axios';
-import config from '../config/config';
+import config from '../../../config/config';
 
 axios.defaults.baseURL = config.baseURL;
 

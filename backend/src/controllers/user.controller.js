@@ -17,10 +17,24 @@ const getUsers = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    console.log('Req.user:', req.user); // Kiểm tra dữ liệu trong req.user
+    console.log('User ID:', req.user.userId || req.user._id); // Log ID trước khi tìm trong DB
+
+    const userId = req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({message: 'User ID not found in token'});
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    console.log('Fetched user:', user);
     res.status(200).json(user);
   } catch (error) {
-    res.status(400).json({message: error.message});
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({message: 'Internal server error'});
   }
 };
 
