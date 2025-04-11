@@ -66,7 +66,11 @@ const AppNavigator = () => {
           name="ForgotPasswordOTP"
           component={ForgotPasswordOTPScreen}
         />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{headerShown: false}} //dòng này để ẩn header
+        />
         <Stack.Screen name="AddProduct" component={AddProductScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="EditProduct" component={EditProductScreen} />

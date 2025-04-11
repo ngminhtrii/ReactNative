@@ -11,13 +11,15 @@ import ProfileUser from './ProfileUser';
 import Discount from './Discount';
 import ProductLike from './ProductLike';
 import Order from './Order';
+import Header from '../../../layout/navbar/main/Header';
+import Footer from '../../../layout/navbar/main/Footer';
 
 type MenuOption = {
   id: string;
   title: string;
 };
 
-const HomeProfile = () => {
+const HomeProfile = ({navigation}: {navigation: any}) => {
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string>('1'); // Default to "Thông tin cá nhân"
 
@@ -61,25 +63,28 @@ const HomeProfile = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={toggleMenu}>
-          <Image
-            source={require('../../../../assets/menu.png')}
-            style={styles.menuIcon}
+    <View style={{flex: 1}}>
+      <Header navigation={navigation} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={toggleMenu}>
+            <Image
+              source={require('../../../../assets/menu.png')}
+              style={styles.menuIcon}
+            />
+          </TouchableOpacity>
+        </View>
+        {isMenuVisible && (
+          <FlatList
+            data={menuOptions}
+            renderItem={renderMenuItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.menuList}
           />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
+        )}
+        <View style={styles.content}>{renderContent()}</View>
       </View>
-      {isMenuVisible && (
-        <FlatList
-          data={menuOptions}
-          renderItem={renderMenuItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.menuList}
-        />
-      )}
-      <View style={styles.content}>{renderContent()}</View>
+      <Footer navigation={navigation} />
     </View>
   );
 };
@@ -89,7 +94,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 16,
+    paddingTop: 80, // ✅ thêm dòng này để đẩy nội dung xuống dưới header
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -99,6 +106,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     marginRight: 10,
+    resizeMode: 'contain',
   },
   headerTitle: {
     fontSize: 20,
