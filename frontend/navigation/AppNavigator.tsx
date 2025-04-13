@@ -10,13 +10,13 @@ import OnboardScreen from '../screens/OnboardScreen';
 import RegisterOTPScreen from '../screens/auth/RegisterOTPScreen';
 import ForgotPasswordOTPScreen from '../screens/auth/ForgotPasswordOTPScreen';
 import ProfileScreen from '../screens/main/profile/HomeProfile';
-import AddProductScreen from '../screens/main/product/AddProductScreen';
-import ProductDetailScreen from '../screens/main/product/ProductDetailScreen';
-import EditProductScreen from '../screens/main/product/EditProductScreen';
+import AddProductScreen from '../screens/main/product/ProductForm';
+import ProductDetailScreen from '../screens/main/product/ProductDetail';
 import ProfileUser from '../screens/main/profile/ProfileUser';
 import Discount from '../screens/main/profile/Discount';
 import ProductLike from '../screens/main/profile/ProductLike';
 import Order from '../screens/main/profile/Order';
+import ProductList from '../screens/main/product/ProductList';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -100,7 +100,7 @@ const AppNavigator = () => {
         />
         <Stack.Screen
           name="EditProduct"
-          component={EditProductScreen}
+          component={AddProductScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen

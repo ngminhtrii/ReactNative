@@ -1,23 +1,47 @@
 {
-  "name": "be-shoestore",
+  "name": "backendshoeshop",
   "version": "1.0.0",
-  "description": "Backend for Shoe Store application",
-  "main": "src/app.js",
+  "description": "Backend cho website bán giày",
+  "main": "server.js",
   "scripts": {
-    "start": "node ./src/index.js",
-    "dev": "nodemon ./src/index.js"
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "dotenv": "^8.6.0",
-    "express": "^4.17.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-async-handler": "^1.2.0",
     "express-validator": "^7.2.1",
-    "mongoose": "^8.11.0"
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "moment": "^2.30.1",
+    "mongoose": "^8.12.1",
+    "mongoose-paginate-v2": "^1.9.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^6.10.0",
+    "randomstring": "^1.3.1",
+    "slugify": "^1.6.6",
+    "socket.io": "^4.8.1",
+    "ua-parser-js": "^2.0.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "nodemon": "^3.1.9"
   },
-  "author": "Your Name",
-  "license": "MIT"
+  "_moduleAliases": {
+    "@config": "src/config",
+    "@models": "src/models",
+    "@services": "src/services",
+    "@controllers": "src/api/controllers",
+    "@middlewares": "src/api/middlewares",
+    "@routes": "src/api/routes",
+    "@utils": "src/utils",
+    "@validators": "src/api/validators",
+    "@plugins": "src/plugins"
+  }
 }

@@ -1,16 +1,19 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI.trim(), {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    console.log("Đang kết nối đến MongoDB Atlas...");
+    console.log(
+      `URI: ${process.env.MONGO_URI.replace(/\/\/(.+):(.+)@/, "//***:***@")}`
+    );
 
-    console.log('MongoDB connected');
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected Successfully: ${conn.connection.host}`);
+    return true;
   } catch (error) {
-    console.error('MongoDB connection error:', error.message);
-    process.exit(1);
+    console.error(`Lỗi kết nối MongoDB: ${error.message}`);
+    console.error(`Chi tiết lỗi: ${error.stack}`);
+    return false;
   }
 };
 
