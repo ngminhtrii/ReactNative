@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const ProductSchema = new mongoose.Schema(
   {
@@ -37,18 +37,18 @@ const ProductSchema = new mongoose.Schema(
     ],
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
+      ref: 'Category',
+      required: false, // Đổi từ true thành false
     },
     brand: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Brand",
-      required: true,
+      ref: 'Brand',
+      required: false, // Đổi từ true thành false
     },
     variants: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Variant",
+        ref: 'Variant',
       },
     ],
     totalQuantity: {
@@ -57,8 +57,8 @@ const ProductSchema = new mongoose.Schema(
     },
     stockStatus: {
       type: String,
-      enum: ["in_stock", "low_stock", "out_of_stock"],
-      default: "out_of_stock",
+      enum: ['in_stock', 'low_stock', 'out_of_stock'],
+      default: 'out_of_stock',
     },
     isActive: {
       type: Boolean,
@@ -74,19 +74,28 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    colors: {
+      type: [String],
+      validate: [array => array.length <= 2, 'Tối đa 2 màu sắc'],
+    },
     deletedAt: {
       type: Date,
       default: null,
     },
     deletedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: null,
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = ProductSchema;

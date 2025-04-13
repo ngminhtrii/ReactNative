@@ -513,41 +513,16 @@ const productService = {
    * Tạo sản phẩm mới
    * @param {Object} productData Thông tin sản phẩm
    */
-  createProduct: async productData => {
-    // Kiểm tra category và brand tồn tại
-    const categoryExists = await Category.findById(productData.category);
-    if (!categoryExists) {
-      throw new ApiError(404, 'Danh mục không tồn tại');
-    }
-
-    const brandExists = await Brand.findById(productData.brand);
-    if (!brandExists) {
-      throw new ApiError(404, 'Thương hiệu không tồn tại');
-    }
-
-    // Kiểm tra sản phẩm đã tồn tại (trùng hết tất cả các thông tin)
-    const duplicate = await Product.findOne({
-      name: productData.name,
-      description: productData.description,
-      category: productData.category,
-      brand: productData.brand,
-    });
-    if (duplicate) {
-      throw new ApiError(409, 'Sản phẩm đã tồn tại với thông tin này');
-    }
-
-    // Tạo sản phẩm mới
+  ccreateProduct: async productData => {
+    // Tạo sản phẩm mới với các trường cần thiết
     const product = new Product({
       name: productData.name,
       description: productData.description,
-      category: productData.category,
-      brand: productData.brand,
-      isActive:
-        productData.isActive !== undefined ? productData.isActive : true,
-      // Không khởi tạo images ở đây vì sẽ được xử lý qua imageService
+      price: productData.price,
+      colors: productData.colors,
     });
 
-    // Lưu sản phẩm - các middleware sẽ tự động tạo slug
+    // Lưu sản phẩm
     await product.save();
 
     return {
@@ -556,7 +531,6 @@ const productService = {
       product: transformProductForAdmin(product),
     };
   },
-
   /**
    * Cập nhật thông tin sản phẩm
    * @param {String} id ID sản phẩm

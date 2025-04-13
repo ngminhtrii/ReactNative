@@ -45,30 +45,23 @@ const productValidator = {
       .isLength({min: 10, max: 1000})
       .withMessage('Mô tả sản phẩm phải có từ 10-1000 ký tự'),
 
-    body('category')
+    body('price')
       .notEmpty()
-      .withMessage('Danh mục sản phẩm không được để trống')
-      .custom(value => {
-        if (!mongoose.Types.ObjectId.isValid(value)) {
-          throw new ApiError(400, 'ID danh mục không hợp lệ');
+      .withMessage('Giá sản phẩm không được để trống')
+      .isFloat({min: 0})
+      .withMessage('Giá sản phẩm phải là số dương'),
+
+    body('colors')
+      .notEmpty()
+      .withMessage('Màu sắc không được để trống')
+      .isArray({max: 2})
+      .withMessage('Màu sắc phải là một mảng tối đa 2 màu')
+      .custom(colors => {
+        if (!colors.every(color => typeof color === 'string')) {
+          throw new ApiError(400, 'Mỗi màu phải là chuỗi');
         }
         return true;
       }),
-
-    body('brand')
-      .notEmpty()
-      .withMessage('Thương hiệu sản phẩm không được để trống')
-      .custom(value => {
-        if (!mongoose.Types.ObjectId.isValid(value)) {
-          throw new ApiError(400, 'ID thương hiệu không hợp lệ');
-        }
-        return true;
-      }),
-
-    body('isActive')
-      .optional()
-      .isBoolean()
-      .withMessage('Trạng thái active phải là boolean'),
   ],
 
   // Kiểm tra dữ liệu cập nhật sản phẩm
