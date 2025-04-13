@@ -63,8 +63,6 @@ const filterService = {
 
   /**
    * Lấy thuộc tính của một sản phẩm cụ thể
-   * (API giữ lại để tương thích ngược với phiên bản cũ)
-   * Khuyến nghị sử dụng getPublicProductById thay thế vì đã tích hợp attributes
    * @param {String} productId - ID của sản phẩm
    */
   getProductAttributes: async (productId) => {

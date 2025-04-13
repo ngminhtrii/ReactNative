@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,19 +18,37 @@ axios.defaults.baseURL = config.baseURL;
 const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true); // Bắt đầu trạng thái tải
     try {
-      const response = await axios.post('/api/auth/login', {email, password});
-      const {token, user} = response.data;
+      const response = await axios.post('/auth/login', {email, password});
+      console.log(response.data); // Kiểm tra phản hồi từ API
+
+      // Lấy token và userId từ phản hồi
+      const {token, _id: userId} = response.data.data;
+
+      // Kiểm tra nếu token hoặc userId không tồn tại
+      if (!token || !userId) {
+        throw new Error('Token hoặc User ID không hợp lệ');
+      }
+
+      // Lưu token và userId vào AsyncStorage
       await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('userId', user._id);
+      await AsyncStorage.setItem('userId', userId);
+
       Alert.alert('Đăng nhập thành công');
       navigation.navigate('Home');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error logging in:', error);
-      Alert.alert('Error logging in', (error as any).response.data.message);
+
+      // Hiển thị thông báo lỗi
+      const errorMessage =
+        error.response?.data?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      Alert.alert('Error logging in', errorMessage);
+    } finally {
+      setLoading(false); // Kết thúc trạng thái tải
     }
   };
 
@@ -40,6 +59,8 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -48,7 +69,11 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLogin} />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <Button title="Login" onPress={handleLogin} />
+      )}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.customButton}
@@ -61,7 +86,6 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
           <Text style={styles.customButtonText}>Forgot Password</Text>
         </TouchableOpacity>
       </View>
-      {message ? <Text>{message}</Text> : null}
     </View>
   );
 };
