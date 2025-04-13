@@ -8,20 +8,29 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import axios from 'axios';
+import authAxios from '../utils/authAxios';
 import CustomSwipper from '../components/Custom/CustomSwipper';
 import MainLayout from '../layout/MainLayout';
-import config from '../config/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
-  const [products, setProducts] = useState([]);
+  const [newProducts, setNewProducts] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${config.baseURL}/admin/products`);
-      setProducts(res.data.products); // Giả sử API trả về danh sách sản phẩm trong `products`
+      const res = await authAxios.get('/admin/products');
+      const allProducts = res.data.data || [];
+
+      const sellers = allProducts.filter(
+        (p: {soLuong: number}) => p.soLuong < 50,
+      );
+      const news = allProducts.filter(
+        (p: {soLuong: number}) => p.soLuong >= 50,
+      );
+
+      setBestSellers(sellers);
+      setNewProducts(news);
     } catch (error) {
       console.error('Lỗi khi tải sản phẩm:', error);
     } finally {
@@ -63,25 +72,42 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
           showPagination={true}
         />
 
-        {/* DANH SÁCH SẢN PHẨM */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DANH SÁCH SẢN PHẨM</Text>
-          <View style={styles.productRow}>
-            {products.map((product: any) => (
-              <ProductCard
-                key={product.id}
-                navigation={navigation}
-                image={product.images[0]?.url || ''}
-                name={product.name}
-                price={`${product.price} đ`}
-                route="ProductDetail"
-                productId={product.id}
-              />
-            ))}
-          </View>
-        </View>
+        {/* SẢN PHẨM BÁN CHẠY */}
+        <ProductSection
+          title="SẢN PHẨM BÁN CHẠY"
+          data={bestSellers}
+          navigation={navigation}
+        />
+
+        {/* SẢN PHẨM MỚI */}
+        <ProductSection
+          title="SẢN PHẨM MỚI"
+          data={newProducts}
+          navigation={navigation}
+        />
       </ScrollView>
     </MainLayout>
+  );
+};
+
+const ProductSection = ({title, data, navigation}: any) => {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.productRow}>
+        {data.map((product: any) => (
+          <ProductCard
+            key={product._id}
+            navigation={navigation}
+            image={product.hinhAnh}
+            name={product.tenSanPham}
+            price={`${product.gia.toLocaleString()} đ`}
+            colors={product.mauSac}
+            productId={product._id}
+          />
+        ))}
+      </View>
+    </View>
   );
 };
 
@@ -90,25 +116,33 @@ const ProductCard = ({
   image,
   name,
   price,
-  route,
+  colors,
   productId,
 }: {
   navigation: any;
   image: string;
   name: string;
   price: string;
-  route: string;
+  colors: string[];
   productId: string;
 }) => {
   return (
     <TouchableOpacity
       style={styles.productContainer}
-      onPress={() => navigation.navigate(route, {id: productId})}>
+      onPress={() => navigation.navigate('ProductDetail', {id: productId})}>
       <Image source={{uri: image}} style={styles.productImage} />
       <Text style={styles.productName} numberOfLines={2}>
         {name}
       </Text>
       <Text style={styles.productPrice}>{price}</Text>
+      <View style={styles.colorRow}>
+        {colors?.map((color, index) => (
+          <View
+            key={index}
+            style={[styles.colorCircle, {backgroundColor: color}]}
+          />
+        ))}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -151,6 +185,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 4,
+  },
+  colorRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  colorCircle: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginHorizontal: 2,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   center: {
     flex: 1,
