@@ -2,24 +2,21 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  Image,
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  Image,
 } from 'react-native';
-import Header from '../layout/navbar/main/Header';
-import Footer from '../layout/navbar/main/Footer';
 import CustomSwipper from '../components/Custom/CustomSwipper';
-
-const screenWidth = Dimensions.get('window').width;
+import MainLayout from '../layout/MainLayout';
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   return (
-    <View style={{flex: 1}}>
-      <Header navigation={navigation} />
+    <MainLayout navigation={navigation}>
       <ScrollView
-        style={[styles.container, {paddingTop: 80, paddingBottom: 60}]}>
+        style={styles.container}
+        contentContainerStyle={{paddingBottom: 120}}
+        showsVerticalScrollIndicator={false}>
         <CustomSwipper
           images={[
             {
@@ -33,7 +30,6 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
           autoPlay={true}
           interval={3000}
           showPagination={true}
-          //showNavigation={true}
         />
 
         {/* SẢN PHẨM BÁN CHẠY */}
@@ -46,6 +42,7 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
               name="Giày Sandal Nam 7081 - Sandal Nam Quai Ngang Chéo Phối Lót Dán"
               price="1.000.000 đ"
               route="ProductDetail"
+              colors={['#000', ['#000', '#D9D9D9']]}
             />
             <ProductCard
               navigation={navigation}
@@ -53,6 +50,7 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
               name="Giày Sneaker Nam 1234 - Sneaker Nam Thời Trang"
               price="1.200.000 đ"
               route="ProductDetail2"
+              colors={[['#FF0000', '#000'], '#666']}
             />
           </View>
         </View>
@@ -67,6 +65,7 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
               name="Giày Thể Thao Nam 5678 - Thời Trang, Năng Động"
               price="1.500.000 đ"
               route="ProductDetail3"
+              colors={['#008080', ['#FFD700', '#000']]}
             />
             <ProductCard
               navigation={navigation}
@@ -74,12 +73,12 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
               name="Giày Cao Cổ Nam 3456 - Phong Cách, Cá Tính"
               price="1.400.000 đ"
               route="ProductDetail4"
+              colors={['#333', '#999']}
             />
           </View>
         </View>
       </ScrollView>
-      <Footer navigation={navigation} />
-    </View>
+    </MainLayout>
   );
 };
 
@@ -89,12 +88,14 @@ const ProductCard = ({
   name,
   price,
   route,
+  colors = [],
 }: {
   navigation: any;
   image: string;
   name: string;
   price: string;
   route: string;
+  colors?: (string | string[])[];
 }) => {
   return (
     <TouchableOpacity
@@ -105,6 +106,42 @@ const ProductCard = ({
         {name}
       </Text>
       <Text style={styles.productPrice}>{price}</Text>
+      <View style={styles.colorContainer}>
+        {colors.map((color, index) =>
+          Array.isArray(color) ? (
+            <View
+              key={index}
+              style={[
+                styles.colorCircle,
+                {backgroundColor: 'transparent', overflow: 'hidden'},
+              ]}>
+              <View style={{flexDirection: 'row', flex: 1}}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: color[0],
+                    borderTopLeftRadius: 12,
+                    borderBottomLeftRadius: 12,
+                  }}
+                />
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: color[1],
+                    borderTopRightRadius: 12,
+                    borderBottomRightRadius: 12,
+                  }}
+                />
+              </View>
+            </View>
+          ) : (
+            <View
+              key={index}
+              style={[styles.colorCircle, {backgroundColor: color}]}
+            />
+          ),
+        )}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -147,6 +184,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  colorContainer: {
+    flexDirection: 'row',
+    marginTop: 6,
+  },
+  colorCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginHorizontal: 3,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
 });
 
