@@ -7,12 +7,14 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import authAxios from '../../../utils/authAxios';
 import {RouteProp, useRoute} from '@react-navigation/native';
-import Footer from '../../../layout/navbar/main/Footer'; // Import Footer
+import Footer from '../../../layout/navbar/main/Footer';
+import {addToCart} from '../../../utils/cartStorage'; // Import hàm addToCart
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Kiểu dữ liệu sản phẩm
 type Product = {
   _id: string;
   tenSanPham: string;
@@ -24,7 +26,6 @@ type Product = {
   soLuong: number;
 };
 
-// Định nghĩa Route
 type RootStackParamList = {
   ProductDetail: {id: string};
 };
@@ -35,11 +36,12 @@ const ProductDetail = ({navigation}: any) => {
   const {id} = route.params;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   const fetchProduct = async () => {
     try {
       const res = await authAxios.get(`/admin/products/${id}`);
-      console.log('Dữ liệu trả về:', res.data);
       setProduct(res.data.product);
     } catch (error) {
       console.error('Lỗi khi tải chi tiết sản phẩm:', error);
@@ -61,6 +63,68 @@ const ProductDetail = ({navigation}: any) => {
     );
   }
 
+  const handleAddToCart = async () => {
+    if (!selectedColor || !selectedSize) {
+      Alert.alert('Thông báo', 'Vui lòng chọn màu sắc và kích thước!');
+      return;
+    }
+
+    const item = {
+      _id: product._id,
+      tenSanPham: product.tenSanPham,
+      gia: product.gia,
+      hinhAnh: product.hinhAnh,
+      color: selectedColor,
+      size: selectedSize,
+      quantity: 1, // Thêm dòng này
+    };
+
+    try {
+      await addToCart(item); // Lưu sản phẩm vào giỏ hàng
+      Alert.alert('Thông báo', 'Sản phẩm đã được thêm vào giỏ hàng!');
+    } catch (error) {
+      console.error('Lỗi khi thêm vào giỏ hàng:', error);
+      Alert.alert('Lỗi', 'Không thể thêm sản phẩm vào giỏ hàng.');
+    }
+  };
+  const handleBuyNow = async () => {
+    if (!selectedColor || !selectedSize) {
+      Alert.alert('Vui lòng chọn màu và kích thước');
+      return;
+    }
+
+    const order = {
+      orderId: Date.now().toString(),
+      items: [
+        {
+          _id: product._id,
+          tenSanPham: product.tenSanPham,
+          gia: product.gia,
+          quantity: 1,
+          hinhAnh: product.hinhAnh,
+          color: selectedColor,
+          size: selectedSize,
+        },
+      ],
+      total: product.gia,
+      createdAt: new Date().toISOString(),
+      status: 'Chờ xác nhận',
+    };
+
+    try {
+      const existing = await AsyncStorage.getItem('orders');
+      const orders = existing ? JSON.parse(existing) : [];
+      orders.push(order);
+      await AsyncStorage.setItem('orders', JSON.stringify(orders));
+
+      Alert.alert('Thành công', 'Đơn hàng đã được tạo!');
+      navigation.navigate('Order'); // nếu có màn OrderScreen
+    } catch (error) {
+      console.error('Lỗi khi lưu đơn hàng:', error);
+      Alert.alert('Lỗi', 'Không thể tạo đơn hàng.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -72,9 +136,14 @@ const ProductDetail = ({navigation}: any) => {
         <Text style={styles.label}>Màu sắc:</Text>
         <View style={styles.colorRow}>
           {product.mauSac.map((color, index) => (
-            <View
+            <TouchableOpacity
               key={index}
-              style={[styles.colorCircle, {backgroundColor: color}]}
+              style={[
+                styles.colorCircle,
+                {backgroundColor: color},
+                selectedColor === color && styles.selectedColorCircle,
+              ]}
+              onPress={() => setSelectedColor(color)}
             />
           ))}
         </View>
@@ -82,26 +151,29 @@ const ProductDetail = ({navigation}: any) => {
         <Text style={styles.label}>Kích thước:</Text>
         <View style={styles.sizeRow}>
           {product.kichThuoc.map((size, index) => (
-            <View key={index} style={styles.sizeBox}>
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.sizeBox,
+                selectedSize === size && styles.selectedSizeBox,
+              ]}
+              onPress={() => setSelectedSize(size)}>
               <Text style={styles.sizeText}>{size}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.quantity}>Còn lại: {product.soLuong}</Text>
-
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addToCart}>
+          <TouchableOpacity style={styles.addToCart} onPress={handleAddToCart}>
             <Text style={styles.buttonText}>Thêm vào giỏ</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.buyNow}>
+          <TouchableOpacity style={styles.buyNow} onPress={handleBuyNow}>
             <Text style={styles.buttonText}>Mua ngay</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Footer */}
       <Footer navigation={navigation} />
     </View>
   );
@@ -114,7 +186,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    marginBottom: 60, // Để tránh bị Footer che
+    marginBottom: 60,
   },
   image: {
     width: '100%',
@@ -158,6 +230,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
+  selectedColorCircle: {
+    borderWidth: 2,
+    borderColor: '#000',
+  },
   sizeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -172,15 +248,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
+  selectedSizeBox: {
+    backgroundColor: '#1976d2',
+    borderColor: '#1976d2',
+  },
   sizeText: {
     fontSize: 14,
-  },
-  quantity: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginTop: 8,
-    color: '#555',
-    alignSelf: 'flex-start',
+    color: '#fff',
   },
   buttonRow: {
     flexDirection: 'row',

@@ -37,11 +37,8 @@ const OrderScreen = () => {
   const fetchOrders = async () => {
     try {
       const storedOrders = await AsyncStorage.getItem('orders');
-      console.log('Dữ liệu lưu trong AsyncStorage:', storedOrders); // In ra nội dung trong AsyncStorage
       if (storedOrders) {
         setOrders(JSON.parse(storedOrders));
-      } else {
-        console.log('Không có đơn hàng nào trong AsyncStorage');
       }
     } catch (error) {
       console.error('Lỗi khi đọc đơn hàng:', error);
