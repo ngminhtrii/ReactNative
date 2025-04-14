@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import authAxios from '../../../utils/authAxios';
 import {RouteProp, useRoute} from '@react-navigation/native';
+import Footer from '../../../layout/navbar/main/Footer'; // Import Footer
 
 // Kiểu dữ liệu sản phẩm
 type Product = {
@@ -29,7 +30,7 @@ type RootStackParamList = {
 };
 type ProductDetailRouteProp = RouteProp<RootStackParamList, 'ProductDetail'>;
 
-const ProductDetail = () => {
+const ProductDetail = ({navigation}: any) => {
   const route = useRoute<ProductDetailRouteProp>();
   const {id} = route.params;
   const [product, setProduct] = useState<Product | null>(null);
@@ -38,8 +39,8 @@ const ProductDetail = () => {
   const fetchProduct = async () => {
     try {
       const res = await authAxios.get(`/admin/products/${id}`);
-      console.log('Dữ liệu trả về:', res.data); // Log toàn bộ dữ liệu trả về
-      setProduct(res.data.product); // Đảm bảo `product` tồn tại trong `res.data`
+      console.log('Dữ liệu trả về:', res.data);
+      setProduct(res.data.product);
     } catch (error) {
       console.error('Lỗi khi tải chi tiết sản phẩm:', error);
     } finally {
@@ -48,14 +49,8 @@ const ProductDetail = () => {
   };
 
   useEffect(() => {
-    console.log('useEffect gọi fetchProduct');
     fetchProduct();
   }, [id]);
-
-  useEffect(() => {
-    console.log('Trạng thái loading:', loading);
-    console.log('Dữ liệu sản phẩm:', product);
-  }, [loading, product]);
 
   if (loading || !product) {
     return (
@@ -66,62 +61,60 @@ const ProductDetail = () => {
     );
   }
 
-  const handleAddToCart = () => {
-    console.log('Thêm vào giỏ:', product._id);
-    // TODO: Tích hợp Redux hoặc Context để thêm vào giỏ
-  };
-
-  const handleBuyNow = () => {
-    console.log('Mua ngay:', product._id);
-    // TODO: Điều hướng sang màn hình thanh toán
-  };
-
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{uri: product.hinhAnh}} style={styles.image} />
-      <Text style={styles.name}>{product.tenSanPham}</Text>
-      <Text style={styles.price}>{product.gia.toLocaleString()} đ</Text>
-      <Text style={styles.description}>{product.moTa}</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Image source={{uri: product.hinhAnh}} style={styles.image} />
+        <Text style={styles.name}>{product.tenSanPham}</Text>
+        <Text style={styles.price}>{product.gia.toLocaleString()} đ</Text>
+        <Text style={styles.description}>{product.moTa}</Text>
 
-      <Text style={styles.label}>Màu sắc:</Text>
-      <View style={styles.colorRow}>
-        {product.mauSac.map((color, index) => (
-          <View
-            key={index}
-            style={[styles.colorCircle, {backgroundColor: color}]}
-          />
-        ))}
-      </View>
+        <Text style={styles.label}>Màu sắc:</Text>
+        <View style={styles.colorRow}>
+          {product.mauSac.map((color, index) => (
+            <View
+              key={index}
+              style={[styles.colorCircle, {backgroundColor: color}]}
+            />
+          ))}
+        </View>
 
-      <Text style={styles.label}>Kích thước:</Text>
-      <View style={styles.sizeRow}>
-        {product.kichThuoc.map((size, index) => (
-          <View key={index} style={styles.sizeBox}>
-            <Text style={styles.sizeText}>{size}</Text>
-          </View>
-        ))}
-      </View>
+        <Text style={styles.label}>Kích thước:</Text>
+        <View style={styles.sizeRow}>
+          {product.kichThuoc.map((size, index) => (
+            <View key={index} style={styles.sizeBox}>
+              <Text style={styles.sizeText}>{size}</Text>
+            </View>
+          ))}
+        </View>
 
-      <Text style={styles.quantity}>Còn lại: {product.soLuong}</Text>
+        <Text style={styles.quantity}>Còn lại: {product.soLuong}</Text>
 
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.addToCart} onPress={handleAddToCart}>
-          <Text style={styles.buttonText}>Thêm vào giỏ</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.addToCart}>
+            <Text style={styles.buttonText}>Thêm vào giỏ</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buyNow} onPress={handleBuyNow}>
-          <Text style={styles.buttonText}>Mua ngay</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity style={styles.buyNow}>
+            <Text style={styles.buttonText}>Mua ngay</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Footer */}
+      <Footer navigation={navigation} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    alignItems: 'center',
+    flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
+    padding: 16,
+    marginBottom: 60, // Để tránh bị Footer che
   },
   image: {
     width: '100%',
