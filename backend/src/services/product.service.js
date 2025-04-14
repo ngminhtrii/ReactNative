@@ -310,7 +310,7 @@ const productService = {
 
     // Lọc theo tên
     if (name) {
-      filter.name = {$regex: name, $options: 'i'};
+      filter.tenSanPham = {$regex: name, $options: 'i'};
     }
     // Lọc theo danh mục
     if (category) {

@@ -17,6 +17,7 @@ import Discount from '../screens/main/profile/Discount';
 import ProductLike from '../screens/main/profile/ProductLike';
 import Order from '../screens/main/profile/Order';
 import ProductList from '../screens/main/product/ProductList';
+import SearchResults from '../screens/main/search/SearchResults';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -35,6 +36,7 @@ export type RootStackParamList = {
   Discount: undefined;
   ProductLike: undefined;
   Order: undefined;
+  SearchResults: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -46,6 +48,11 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="SearchResults"
+          component={SearchResults}
           options={{headerShown: false}}
         />
         <Stack.Screen

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,13 +7,26 @@ import {
   TextInput,
   Text,
 } from 'react-native';
+import authAxios from '../../../utils/authAxios';
 
 const Header: React.FC<{navigation: any}> = ({navigation}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = async () => {
+    try {
+      const res = await authAxios.get(`/admin/products?name=${searchQuery}`);
+      console.log('Kết quả tìm kiếm:', res.data); // Log dữ liệu trả về
+      navigation.navigate('SearchResults', {products: res.data.data}); // Điều hướng đến màn hình kết quả
+    } catch (error) {
+      console.error('Lỗi khi tìm kiếm sản phẩm:', error);
+    }
+  };
+
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Image
-          source={require('../../../../assets/arrow_back.png')} // Corrected path
+          source={require('../../../../assets/arrow_back.png')}
           style={styles.icon}
         />
       </TouchableOpacity>
@@ -21,16 +34,22 @@ const Header: React.FC<{navigation: any}> = ({navigation}) => {
         style={styles.searchInput}
         placeholder="Search"
         placeholderTextColor="gray"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onSubmitEditing={handleSearch} // Gọi hàm tìm kiếm khi nhấn Enter
       />
-      <TouchableOpacity onPress={() => console.log('Notification pressed')}>
+      <TouchableOpacity onPress={handleSearch}>
         <Image
-          source={require('../../../../assets/notifications.png')} // Corrected path
+          //source={require('../../../../assets/search_icon.png')} // Thêm icon tìm kiếm
           style={styles.icon}
         />
       </TouchableOpacity>
-      <View style={{flex: 0.03}}>
-        <Text> </Text> {/* Thêm Text để tránh lỗi */}
-      </View>
+      <TouchableOpacity onPress={() => console.log('Notification pressed')}>
+        <Image
+          source={require('../../../../assets/notifications.png')}
+          style={styles.icon}
+        />
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
         <Image
           source={{uri: 'https://via.placeholder.com/50'}}
@@ -47,12 +66,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    backgroundColor: '#e4e4eb', // Màu nền xanh
-    height: 60, // Điều chỉnh chiều cao cho icon hiển thị đúng
+    backgroundColor: '#e4e4eb',
+    height: 60,
     position: 'absolute',
     top: 0,
     width: '100%',
-    zIndex: 2, // Ensure it stays above other content
+    zIndex: 2,
   },
   searchInput: {
     flex: 1,
