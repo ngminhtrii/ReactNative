@@ -1,20 +1,24 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, FlatList} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Discount = () => {
-  const discountCodes = [
-    {
-      id: '1',
-      code: 'DISCOUNT10',
-      description: 'Giảm 10% cho đơn hàng đầu tiên',
-    },
-    {
-      id: '2',
-      code: 'FREESHIP',
-      description: 'Miễn phí vận chuyển cho đơn hàng trên 500,000 VND',
-    },
-    {id: '3', code: 'SALE50', description: 'Giảm 50% cho sản phẩm thứ hai'},
-  ];
+  const [discountCodes, setDiscountCodes] = useState<
+    {id: string; code: string; description: string}[]
+  >([]);
+
+  const fetchDiscounts = async () => {
+    try {
+      const discounts = await AsyncStorage.getItem('DISCOUNT_CODES');
+      setDiscountCodes(discounts ? JSON.parse(discounts) : []);
+    } catch (error) {
+      console.error('Lỗi khi tải mã giảm giá:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDiscounts();
+  }, []);
 
   const renderItem = ({
     item,

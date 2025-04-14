@@ -1,4 +1,3 @@
-// screens/ReviewScreen.tsx
 import React, {useState} from 'react';
 import {
   View,
@@ -9,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import {RouteProp, useRoute} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Product = {
   _id: string;
@@ -27,21 +27,45 @@ const ReviewScreen = ({navigation}: any) => {
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!comment) {
       Alert.alert('Vui lòng nhập nội dung đánh giá');
       return;
     }
 
-    // Bạn có thể lưu vào backend hoặc AsyncStorage
+    // Gửi đánh giá (có thể lưu vào backend hoặc AsyncStorage)
     console.log('Gửi đánh giá:', {
       productId: product._id,
       rating,
       comment,
     });
 
-    Alert.alert('Cảm ơn bạn đã đánh giá!');
-    navigation.goBack();
+    // Tạo mã giảm giá
+    const discountCode = {
+      id: Date.now().toString(),
+      code: `DISCOUNT${Math.floor(Math.random() * 1000)}`, // Tạo mã ngẫu nhiên
+      description: `Giảm ${rating >= 4 ? '20%' : '10%'} cho lần mua tiếp theo`,
+      discount: rating >= 4 ? 20 : 10, // Giảm 20% nếu đánh giá >= 4 sao, ngược lại giảm 10%
+    };
+
+    try {
+      // Lấy danh sách mã giảm giá hiện tại
+      const existingDiscounts = await AsyncStorage.getItem('DISCOUNT_CODES');
+      const discounts = existingDiscounts ? JSON.parse(existingDiscounts) : [];
+
+      // Thêm mã giảm giá mới
+      discounts.push(discountCode);
+      await AsyncStorage.setItem('DISCOUNT_CODES', JSON.stringify(discounts));
+
+      Alert.alert(
+        'Cảm ơn bạn đã đánh giá!',
+        `Bạn đã nhận được mã giảm giá: ${discountCode.code}`,
+      );
+      navigation.goBack();
+    } catch (error) {
+      console.error('Lỗi khi lưu mã giảm giá:', error);
+      Alert.alert('Lỗi', 'Không thể lưu mã giảm giá.');
+    }
   };
 
   return (
