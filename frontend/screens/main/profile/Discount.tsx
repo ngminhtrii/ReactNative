@@ -1,11 +1,20 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, FlatList} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
 
 const Discount = () => {
   const [discountCodes, setDiscountCodes] = useState<
-    {id: string; code: string; description: string}[]
+    {id: string; code: string; description: string; discount: number}[]
   >([]);
+  const navigation = useNavigation();
 
   const fetchDiscounts = async () => {
     try {
@@ -20,15 +29,42 @@ const Discount = () => {
     fetchDiscounts();
   }, []);
 
+  const handleSelectDiscount = async (discount: any) => {
+    try {
+      // Xóa mã giảm giá đã sử dụng
+      const updatedDiscounts = discountCodes.filter(
+        item => item.id !== discount.id,
+      );
+      await AsyncStorage.setItem(
+        'DISCOUNT_CODES',
+        JSON.stringify(updatedDiscounts),
+      );
+      setDiscountCodes(updatedDiscounts);
+
+      // Truyền mã giảm giá về màn hình trước
+      Alert.alert('Thông báo', `Bạn đã chọn mã giảm giá: ${discount.code}`);
+      navigation.goBack(); // Quay lại màn hình trước
+      navigation.navigate({
+        name: 'ProductDetail', // Hoặc 'CartScreen'
+        params: {selectedDiscount: discount},
+        merge: true,
+      });
+    } catch (error) {
+      console.error('Lỗi khi sử dụng mã giảm giá:', error);
+    }
+  };
+
   const renderItem = ({
     item,
   }: {
-    item: {id: string; code: string; description: string};
+    item: {id: string; code: string; description: string; discount: number};
   }) => (
-    <View style={styles.discountContainer}>
+    <TouchableOpacity
+      style={styles.discountContainer}
+      onPress={() => handleSelectDiscount(item)}>
       <Text style={styles.discountCode}>{item.code}</Text>
       <Text style={styles.discountDescription}>{item.description}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

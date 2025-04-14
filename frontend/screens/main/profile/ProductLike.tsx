@@ -1,21 +1,30 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, FlatList, Image} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type Product = {
+  _id: string;
+  tenSanPham: string;
+  hinhAnh: string;
+};
 
 const ProductLike = () => {
-  const favoriteProducts = [
-    {id: '1', name: 'Product A', image: 'https://via.placeholder.com/100'},
-    {id: '2', name: 'Product B', image: 'https://via.placeholder.com/100'},
-    {id: '3', name: 'Product C', image: 'https://via.placeholder.com/100'},
-  ];
+  const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
 
-  const renderItem = ({
-    item,
-  }: {
-    item: {id: string; name: string; image: string};
-  }) => (
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const stored = await AsyncStorage.getItem('favorites');
+      const favorites = stored ? JSON.parse(stored) : [];
+      setFavoriteProducts(favorites);
+    };
+
+    fetchFavorites();
+  }, []);
+
+  const renderItem = ({item}: {item: Product}) => (
     <View style={styles.productContainer}>
-      <Image source={{uri: item.image}} style={styles.productImage} />
-      <Text style={styles.productName}>{item.name}</Text>
+      <Image source={{uri: item.hinhAnh}} style={styles.productImage} />
+      <Text style={styles.productName}>{item.tenSanPham}</Text>
     </View>
   );
 
@@ -25,7 +34,7 @@ const ProductLike = () => {
       <FlatList
         data={favoriteProducts}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id}
         contentContainerStyle={styles.list}
       />
     </View>
@@ -52,9 +61,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   productImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     marginRight: 16,
+    borderRadius: 8,
   },
   productName: {
     fontSize: 16,

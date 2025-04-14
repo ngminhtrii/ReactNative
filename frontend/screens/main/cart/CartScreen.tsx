@@ -9,33 +9,35 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {getCart, clearCart, addToCart} from '../../../utils/cartStorage'; // Import các hàm từ cartStorage
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import {getCart, clearCart} from '../../../utils/cartStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const CartScreen = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [discount, setDiscount] = useState<number>(0);
+  const navigation = useNavigation();
+  const route = useRoute();
+  const {selectedDiscount} = route.params || {};
+
+  useEffect(() => {
+    if (selectedDiscount) {
+      setDiscount(selectedDiscount.discount);
+    }
+    fetchCart();
+  }, [selectedDiscount]);
 
   const fetchCart = async () => {
     const data = await getCart();
-    console.log('Dữ liệu giỏ hàng:', data); // Log dữ liệu giỏ hàng
     setCartItems(data);
   };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.gia * item.quantity,
     0,
   );
 
-  const handleRemoveItem = async (itemId: string) => {
-    const updatedCart = cartItems.filter(item => item._id !== itemId);
-    setCartItems(updatedCart); // Cập nhật giỏ hàng trong state
-    await AsyncStorage.setItem('CART_ITEMS', JSON.stringify(updatedCart)); // Lưu lại giỏ hàng vào AsyncStorage
-    Alert.alert('Thông báo', 'Sản phẩm đã được xóa khỏi giỏ hàng!');
-  };
+  const discountedTotal = total - (total * discount) / 100;
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -46,7 +48,7 @@ const CartScreen = () => {
     const newOrder = {
       orderId: Date.now().toString(),
       items: cartItems,
-      total: total,
+      total: discountedTotal,
       createdAt: new Date().toISOString(),
       status: 'Chờ xác nhận',
     };
@@ -78,15 +80,20 @@ const CartScreen = () => {
               <Text>Số lượng: {item.quantity}</Text>
               <Text>Giá: {item.gia.toLocaleString()} đ</Text>
             </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleRemoveItem(item._id)}>
-              <Text style={styles.deleteButtonText}>Xóa</Text>
-            </TouchableOpacity>
           </View>
         )}
       />
       <Text style={styles.total}>Tổng: {total.toLocaleString()} đ</Text>
+      {discount > 0 && (
+        <Text style={styles.discountedTotal}>
+          Tổng sau giảm: {discountedTotal.toLocaleString()} đ
+        </Text>
+      )}
+      <TouchableOpacity
+        style={styles.selectDiscount}
+        onPress={() => navigation.navigate('Discount')}>
+        <Text style={styles.selectDiscountText}>Chọn mã giảm giá</Text>
+      </TouchableOpacity>
       <Button title="Thanh toán" onPress={handleCheckout} />
     </View>
   );
@@ -105,13 +112,22 @@ const styles = StyleSheet.create({
   details: {flex: 1, marginLeft: 12, justifyContent: 'center'},
   name: {fontSize: 16, fontWeight: 'bold'},
   total: {fontSize: 20, fontWeight: 'bold', marginTop: 20, textAlign: 'center'},
-  deleteButton: {
-    backgroundColor: '#e53935',
-    padding: 8,
-    borderRadius: 4,
+  discountedTotal: {
+    fontSize: 20,
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'center',
   },
-  deleteButtonText: {
+  selectDiscount: {
+    backgroundColor: '#1976d2',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  selectDiscountText: {
     color: '#fff',
+    textAlign: 'center',
     fontWeight: 'bold',
   },
 });

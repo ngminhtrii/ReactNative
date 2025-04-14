@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import authAxios from '../../../utils/authAxios';
-import {RouteProp, useRoute} from '@react-navigation/native';
+import {RouteProp} from '@react-navigation/native';
 import Footer from '../../../layout/navbar/main/Footer';
-import {addToCart} from '../../../utils/cartStorage'; // Import hàm addToCart
+import {addToCart} from '../../../utils/cartStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Product = {
@@ -27,22 +27,24 @@ type Product = {
 };
 
 type RootStackParamList = {
-  ProductDetail: {id: string};
+  ProductDetail: {id: string; selectedDiscount?: {discount: number}};
 };
 type ProductDetailRouteProp = RouteProp<RootStackParamList, 'ProductDetail'>;
 
-const ProductDetail = ({navigation}: any) => {
-  const route = useRoute<ProductDetailRouteProp>();
-  const {id} = route.params;
+const ProductDetail = ({navigation, route}: any) => {
+  const {id, selectedDiscount} = route.params || {};
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [discount, setDiscount] = useState<number>(0);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const fetchProduct = async () => {
     try {
       const res = await authAxios.get(`/admin/products/${id}`);
       setProduct(res.data.product);
+      checkFavorite(res.data.product._id);
     } catch (error) {
       console.error('Lỗi khi tải chi tiết sản phẩm:', error);
     } finally {
@@ -50,9 +52,40 @@ const ProductDetail = ({navigation}: any) => {
     }
   };
 
+  const checkFavorite = async (productId: string) => {
+    const storedFavorites = await AsyncStorage.getItem('favorites');
+    const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
+    setIsFavorite(favorites.some((item: Product) => item._id === productId));
+  };
+
+  const toggleFavorite = async () => {
+    const stored = await AsyncStorage.getItem('favorites');
+    const favorites = stored ? JSON.parse(stored) : [];
+
+    let updatedFavorites;
+    if (isFavorite) {
+      updatedFavorites = favorites.filter(
+        (item: Product) => item._id !== product!._id,
+      );
+      Alert.alert('Thông báo', 'Đã xóa khỏi danh sách yêu thích.');
+    } else {
+      updatedFavorites = [...favorites, product];
+      Alert.alert('Thông báo', 'Đã thêm vào danh sách yêu thích.');
+    }
+
+    await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+    setIsFavorite(!isFavorite);
+  };
+
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (selectedDiscount) {
+      setDiscount(selectedDiscount.discount);
+    }
+  }, [selectedDiscount]);
 
   if (loading || !product) {
     return (
@@ -76,22 +109,25 @@ const ProductDetail = ({navigation}: any) => {
       hinhAnh: product.hinhAnh,
       color: selectedColor,
       size: selectedSize,
-      quantity: 1, // Thêm dòng này
+      quantity: 1,
     };
 
     try {
-      await addToCart(item); // Lưu sản phẩm vào giỏ hàng
+      await addToCart(item);
       Alert.alert('Thông báo', 'Sản phẩm đã được thêm vào giỏ hàng!');
     } catch (error) {
       console.error('Lỗi khi thêm vào giỏ hàng:', error);
       Alert.alert('Lỗi', 'Không thể thêm sản phẩm vào giỏ hàng.');
     }
   };
+
   const handleBuyNow = async () => {
     if (!selectedColor || !selectedSize) {
       Alert.alert('Vui lòng chọn màu và kích thước');
       return;
     }
+
+    const discountedPrice = product.gia - (product.gia * discount) / 100;
 
     const order = {
       orderId: Date.now().toString(),
@@ -99,14 +135,14 @@ const ProductDetail = ({navigation}: any) => {
         {
           _id: product._id,
           tenSanPham: product.tenSanPham,
-          gia: product.gia,
+          gia: discountedPrice,
           quantity: 1,
           hinhAnh: product.hinhAnh,
           color: selectedColor,
           size: selectedSize,
         },
       ],
-      total: product.gia,
+      total: discountedPrice,
       createdAt: new Date().toISOString(),
       status: 'Chờ xác nhận',
     };
@@ -118,7 +154,7 @@ const ProductDetail = ({navigation}: any) => {
       await AsyncStorage.setItem('orders', JSON.stringify(orders));
 
       Alert.alert('Thành công', 'Đơn hàng đã được tạo!');
-      navigation.navigate('Order'); // nếu có màn OrderScreen
+      navigation.navigate('Order');
     } catch (error) {
       console.error('Lỗi khi lưu đơn hàng:', error);
       Alert.alert('Lỗi', 'Không thể tạo đơn hàng.');
@@ -130,7 +166,13 @@ const ProductDetail = ({navigation}: any) => {
       <ScrollView contentContainerStyle={styles.content}>
         <Image source={{uri: product.hinhAnh}} style={styles.image} />
         <Text style={styles.name}>{product.tenSanPham}</Text>
-        <Text style={styles.price}>{product.gia.toLocaleString()} đ</Text>
+        <Text style={styles.price}>Giá: {product.gia.toLocaleString()} đ</Text>
+        {discount > 0 && (
+          <Text style={styles.discountedPrice}>
+            Giá sau giảm:{' '}
+            {(product.gia - (product.gia * discount) / 100).toLocaleString()} đ
+          </Text>
+        )}
         <Text style={styles.description}>{product.moTa}</Text>
 
         <Text style={styles.label}>Màu sắc:</Text>
@@ -158,10 +200,33 @@ const ProductDetail = ({navigation}: any) => {
                 selectedSize === size && styles.selectedSizeBox,
               ]}
               onPress={() => setSelectedSize(size)}>
-              <Text style={styles.sizeText}>{size}</Text>
+              <Text
+                style={[
+                  styles.sizeText,
+                  selectedSize === size && {color: '#fff'},
+                ]}>
+                {size}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
+
+        <TouchableOpacity
+          style={styles.selectDiscount}
+          onPress={() => navigation.navigate('Discount')}>
+          <Text style={styles.selectDiscountText}>Chọn mã giảm giá</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.favoriteButton,
+            {backgroundColor: isFavorite ? '#888' : '#1976d2'},
+          ]}
+          onPress={toggleFavorite}>
+          <Text style={styles.selectDiscountText}>
+            {isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.addToCart} onPress={handleAddToCart}>
@@ -173,7 +238,6 @@ const ProductDetail = ({navigation}: any) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
       <Footer navigation={navigation} />
     </View>
   );
@@ -184,9 +248,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  favoriteButton: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
   content: {
     padding: 16,
-    marginBottom: 60,
+    paddingBottom: 120, // Đảm bảo không bị Footer che mất nội dung cuối
   },
   image: {
     width: '100%',
@@ -204,6 +274,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#d32f2f',
+    marginBottom: 8,
+  },
+  discountedPrice: {
+    fontSize: 18,
+    color: '#4CAF50',
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   description: {
@@ -254,7 +330,18 @@ const styles = StyleSheet.create({
   },
   sizeText: {
     fontSize: 14,
+    color: '#000',
+  },
+  selectDiscount: {
+    backgroundColor: '#1976d2',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  selectDiscountText: {
     color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   buttonRow: {
     flexDirection: 'row',
