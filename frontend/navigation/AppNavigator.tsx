@@ -20,6 +20,8 @@ import ProductList from '../screens/main/product/ProductList';
 import SearchResults from '../screens/main/search/SearchResults';
 import CartScreen from '../screens/main/cart/CartScreen';
 import OrderScreen from '../screens/main/order/OrderScreen';
+import OrderDetailScreen from '../screens/main/order/OrderDetailScreen';
+import ReviewScreen from '../screens/main/product/ReviewScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -41,6 +43,8 @@ export type RootStackParamList = {
   SearchResults: undefined;
   Cart: undefined;
   OrderScreen: undefined;
+  ReviewScreen: {product: {id: string; name: string; image: string}};
+  OrderDetail: {orderId: string};
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -74,6 +78,17 @@ const AppNavigator = () => {
           component={OrderScreen}
           options={{title: 'Đơn hàng của bạn'}}
         />
+        <Stack.Screen
+          name="OrderDetail"
+          component={OrderDetailScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ReviewScreen"
+          component={ReviewScreen}
+          options={{headerShown: false}}
+        />
+
         <Stack.Screen
           name="Home"
           component={HomeScreen}

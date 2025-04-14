@@ -1,6 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, StyleSheet, Button, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {TouchableOpacity} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 
 type Order = {
   orderId: string;
@@ -27,25 +30,53 @@ const ORDER_STATUS: {[key: string]: string} = {
   'cancel-requested': 'Đang yêu cầu hủy',
 };
 
+type RootStackParamList = {
+  OrderDetail: {order: Order};
+  // Add other routes here if needed
+};
+
 const OrderScreen = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [orders, setOrders] = useState<Order[]>([]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrders();
+    }, []),
+  );
 
   const fetchOrders = async () => {
     try {
       const storedOrders = await AsyncStorage.getItem('orders');
-      console.log('Dữ liệu lưu trong AsyncStorage:', storedOrders); // In ra nội dung trong AsyncStorage
+      console.log('Dữ liệu lưu trong AsyncStorage:', storedOrders);
       if (storedOrders) {
-        setOrders(JSON.parse(storedOrders));
+        const ordersData = JSON.parse(storedOrders);
+        const updatedOrders = ordersData.map((order: Order) => {
+          const timeCreated = new Date(order.createdAt).getTime();
+          const now = Date.now();
+          const diffInMinutes = (now - timeCreated) / (1000 * 60);
+
+          // Tự động xác nhận đơn hàng sau 30 phút nếu trạng thái là "pending"
+          if (order.status === 'pending' && diffInMinutes >= 30) {
+            order.status = 'confirmed';
+          }
+          return order;
+        });
+        setOrders(updatedOrders);
       } else {
         console.log('Không có đơn hàng nào trong AsyncStorage');
       }
     } catch (error) {
       console.error('Lỗi khi đọc đơn hàng:', error);
     }
+  };
+
+  const handleUpdateStatus = (order: Order, newStatus: string) => {
+    const updated = orders.map(o =>
+      o.orderId === order.orderId ? {...o, status: newStatus} : o,
+    );
+    AsyncStorage.setItem('orders', JSON.stringify(updated));
+    setOrders(updated);
   };
 
   const handleCancel = (order: Order) => {
@@ -59,21 +90,13 @@ const OrderScreen = () => {
         {
           text: 'Có',
           onPress: async () => {
-            const updated = orders.map(o =>
-              o.orderId === order.orderId ? {...o, status: 'cancelled'} : o,
-            );
-            await AsyncStorage.setItem('orders', JSON.stringify(updated));
-            setOrders(updated);
+            handleUpdateStatus(order, 'cancelled');
           },
         },
       ]);
     } else if (order.status === 'preparing') {
       Alert.alert('Yêu cầu hủy', 'Yêu cầu hủy đơn sẽ được gửi đến shop.');
-      const updated = orders.map(o =>
-        o.orderId === order.orderId ? {...o, status: 'cancel-requested'} : o,
-      );
-      AsyncStorage.setItem('orders', JSON.stringify(updated));
-      setOrders(updated);
+      handleUpdateStatus(order, 'cancel-requested');
     } else {
       Alert.alert(
         'Không thể hủy đơn',
@@ -82,26 +105,43 @@ const OrderScreen = () => {
     }
   };
 
-  const renderItem = ({item}: {item: Order}) => (
-    <View style={styles.orderContainer}>
-      <Text style={styles.orderId}>Mã đơn: {item.orderId}</Text>
-      <Text style={styles.orderDate}>
-        Ngày tạo: {new Date(item.createdAt).toLocaleString()}
-      </Text>
-      <Text style={styles.orderTotal}>
-        Tổng tiền: {item.total.toLocaleString()} đ
-      </Text>
-      <Text style={styles.orderStatus}>
-        Trạng thái: {ORDER_STATUS[item.status] || item.status}
-      </Text>
+  // Removed redundant navigation declaration
 
-      {item.status === 'pending' || item.status === 'preparing' ? (
-        <Button
-          title={item.status === 'pending' ? 'Hủy đơn' : 'Gửi yêu cầu hủy'}
-          onPress={() => handleCancel(item)}
-        />
-      ) : null}
-    </View>
+  const renderItem = ({item}: {item: Order}) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('OrderDetail', {order: item})}>
+      <View style={styles.orderContainer}>
+        <Text style={styles.orderId}>Mã đơn: {item.orderId}</Text>
+        <Text style={styles.orderDate}>
+          Ngày tạo: {new Date(item.createdAt).toLocaleString()}
+        </Text>
+        <Text style={styles.orderTotal}>
+          Tổng tiền: {item.total.toLocaleString()} đ
+        </Text>
+        <Text style={styles.orderStatus}>
+          Trạng thái: {ORDER_STATUS[item.status] || item.status}
+        </Text>
+
+        {item.status === 'delivered' && (
+          <TouchableOpacity
+            style={{
+              marginTop: 10,
+              backgroundColor: '#2196F3',
+              padding: 8,
+              borderRadius: 5,
+            }}
+            onPress={() =>
+              navigation.navigate('ReviewScreen', {
+                product: item.items[0], // giả sử đánh giá 1 sản phẩm trong đơn
+              })
+            }>
+            <Text style={{color: 'white', textAlign: 'center'}}>
+              Đánh giá sản phẩm
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -130,6 +170,7 @@ const styles = StyleSheet.create({
   orderDate: {},
   orderTotal: {marginTop: 4, fontWeight: 'bold', color: '#e53935'},
   orderStatus: {marginTop: 4, fontStyle: 'italic'},
+  buttonRow: {marginTop: 10},
 });
 
 export default OrderScreen;
