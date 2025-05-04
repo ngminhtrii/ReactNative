@@ -22,7 +22,17 @@ import CartScreen from '../screens/main/cart/CartScreen';
 import OrderScreen from '../screens/main/order/OrderScreen';
 import OrderDetailScreen from '../screens/main/order/OrderDetailScreen';
 import ReviewScreen from '../screens/main/product/ReviewScreen';
+import ProductManagementScreen from '../screens/admin/product/ProductManagementScreen';
+import EditProductScreen from '../screens/admin/product/EditProductScreen';
 
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: string;
+  totalQuantity: number;
+  colors: string[];
+}
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
@@ -35,7 +45,6 @@ export type RootStackParamList = {
   Profile: undefined;
   AddProduct: undefined;
   ProductDetail: {productId: string};
-  EditProduct: {productId: string}; // Thêm dòng này
   ProfileUser: undefined;
   Discount: undefined;
   ProductLike: undefined;
@@ -45,6 +54,9 @@ export type RootStackParamList = {
   OrderScreen: undefined;
   ReviewScreen: {product: {id: string; name: string; image: string}};
   OrderDetail: {orderId: string};
+  ProductList: undefined;
+  ProductManagement: undefined;
+  EditProduct: {route: {params: {product: Product}}};
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -122,7 +134,7 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Profile"
           component={ProfileScreen}
-          options={{headerShown: false}} //dòng này để ẩn header
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="AddProduct"
@@ -134,11 +146,7 @@ const AppNavigator = () => {
           component={ProductDetailScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="EditProduct"
-          component={AddProductScreen}
-          options={{headerShown: false}}
-        />
+
         <Stack.Screen
           name="ProfileUser"
           component={ProfileUser}
@@ -157,6 +165,21 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Order"
           component={Order}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProductList"
+          component={ProductList}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProductManagement"
+          component={ProductManagementScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="EditProduct"
+          component={EditProductScreen as React.FC}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

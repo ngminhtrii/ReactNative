@@ -3,8 +3,9 @@ import {
   ScrollView,
   View,
   StyleSheet,
-  Alert,
   TouchableOpacity,
+  Image,
+  Alert,
 } from 'react-native';
 import {
   TextInput,
@@ -14,8 +15,31 @@ import {
   Surface,
   useTheme,
 } from 'react-native-paper';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'react-native-image-picker';
+import authAxios from '../../../utils/authAxios';
+
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: string;
+  totalQuantity: number;
+  colors: string[];
+}
+
+interface EditProductScreenProps {
+  route: {
+    params: {
+      product: Product;
+    };
+  };
+}
+
+interface ImageAsset {
+  uri: string;
+  type: string;
+  fileName: string;
+}
 
 const colors = [
   '#FF0000',
@@ -28,13 +52,18 @@ const colors = [
   '#ffffff',
 ];
 
-const ProductForm: React.FC = () => {
+const EditProductScreen: React.FC<EditProductScreenProps> = ({route}) => {
+  const {product} = route.params;
   const theme = useTheme();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [totalQuantity, setTotalQuantity] = useState('');
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+
+  const [name, setName] = useState(product.name);
+  const [description, setDescription] = useState(product.description);
+  const [price, setPrice] = useState(product.price.toString());
+  const [totalQuantity, setTotalQuantity] = useState(
+    product.totalQuantity.toString(),
+  );
+  const [selectedColors, setSelectedColors] = useState(product.colors);
+  const [image, setImage] = useState<ImageAsset | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleColorSelect = (color: string) => {
@@ -47,34 +76,54 @@ const ProductForm: React.FC = () => {
     }
   };
 
-  const handleCreateProduct = async () => {
+  const pickImage = () => {
+    ImagePicker.launchImageLibrary({mediaType: 'photo'}, response => {
+      if (response.assets && response.assets.length > 0) {
+        const picked = response.assets[0];
+        if (picked.uri && picked.type && picked.fileName) {
+          setImage({
+            uri: picked.uri,
+            type: picked.type,
+            fileName: picked.fileName,
+          });
+        }
+      }
+    });
+  };
+
+  const handleUpdate = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) throw new Error('Token không tồn tại.');
+      // Chuẩn bị payload đầy đủ cho PUT
+      const updatePayload = {
+        name,
+        description,
+        price,
+        totalQuantity: parseInt(totalQuantity, 10),
+        colors: selectedColors,
+      };
 
-      const response = await axios.post(
-        'http://192.168.2.14:5005/api/admin/products',
-        {
-          name,
-          description,
-          price: parseFloat(price),
-          totalQuantity: parseInt(totalQuantity),
-          colors: selectedColors,
-        },
-        {
+      await authAxios.put(`/admin/products/${product._id}`, updatePayload);
+
+      if (image) {
+        const formData = new FormData();
+        formData.append('images', {
+          uri: image.uri,
+          type: image.type,
+          name: image.fileName,
+        } as any);
+
+        await authAxios.post(`/admin/images/product/${product._id}`, formData, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
           },
-        },
-      );
+        });
+      }
 
-      Alert.alert('Thành công', 'Sản phẩm đã được tạo!');
-      console.log('✅ Tạo sản phẩm:', response.data);
+      Alert.alert('Thành công', 'Sản phẩm đã được cập nhật.');
     } catch (error: any) {
-      console.error('❌ Lỗi tạo sản phẩm:', error);
-      const msg = error.response?.data?.message || 'Lỗi không xác định';
-      Alert.alert('Lỗi', msg);
+      console.error(error);
+      Alert.alert('Lỗi', error.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -83,7 +132,7 @@ const ProductForm: React.FC = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Surface style={styles.card} elevation={4}>
-        <Text style={styles.title}>Tạo Sản Phẩm Mới</Text>
+        <Text style={styles.title}>Chỉnh sửa sản phẩm</Text>
 
         <TextInput
           label="Tên sản phẩm"
@@ -136,14 +185,27 @@ const ProductForm: React.FC = () => {
           ))}
         </View>
 
+        <Button mode="outlined" onPress={pickImage}>
+          Chọn ảnh
+        </Button>
+
+        {image && (
+          <Image
+            source={{uri: image.uri}}
+            style={{
+              width: 100,
+              height: 100,
+              marginTop: 10,
+              alignSelf: 'center',
+            }}
+          />
+        )}
+
         {loading ? (
-          <ActivityIndicator animating={true} color={theme.colors.primary} />
+          <ActivityIndicator animating color={theme.colors.primary} />
         ) : (
-          <Button
-            mode="contained"
-            onPress={handleCreateProduct}
-            style={styles.button}>
-            Tạo sản phẩm
+          <Button mode="contained" onPress={handleUpdate} style={styles.button}>
+            Cập nhật
           </Button>
         )}
       </Surface>
@@ -174,7 +236,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-
     fontWeight: '500',
     marginBottom: 8,
     color: '#444',
@@ -201,4 +262,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProductForm;
+export default EditProductScreen;

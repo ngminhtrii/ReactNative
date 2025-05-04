@@ -1,4 +1,4 @@
-const localIP = '192.168.211.78'; // Đặt IP nội bộ của bạn tại đây
+const localIP = '192.168.2.14'; // Đặt IP nội bộ của bạn tại đây
 const port = 5005;
 
 const config = {

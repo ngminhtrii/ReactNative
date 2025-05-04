@@ -513,16 +513,46 @@ const productService = {
    * Tạo sản phẩm mới
    * @param {Object} productData Thông tin sản phẩm
    */
-  ccreateProduct: async productData => {
-    // Tạo sản phẩm mới với các trường cần thiết
+  createProduct: async productData => {
+    // Kiểm tra category và brand tồn tại
+    /*const categoryExists = await Category.findById(productData.category);
+    if (!categoryExists) {
+      throw new ApiError(404, `Danh mục ${productData.category} không tồn tại`);
+    }
+
+    const brandExists = await Brand.findById(productData.brand);
+    if (!brandExists) {
+      throw new ApiError(404, `Thương hiệu ${productData.brand} không tồn tại`);
+    }*/
+
+    // Kiểm tra sản phẩm đã tồn tại (trùng hết tất cả các thông tin)
+    const duplicate = await Product.findOne({
+      name: productData.name,
+      description: productData.description,
+      category: productData.category,
+      brand: productData.brand,
+    });
+    if (duplicate) {
+      throw new ApiError(
+        409,
+        `Đã tồn tại sản phẩm với thông tin này trong dữ liệu`,
+      );
+    }
+
+    // Tạo sản phẩm mới
     const product = new Product({
       name: productData.name,
       description: productData.description,
       price: productData.price,
+      totalQuantity: productData.totalQuantity,
       colors: productData.colors,
+      isActive:
+        productData.isActive !== undefined ? productData.isActive : true,
+      ...(productData.category && {category: productData.category}),
+      ...(productData.brand && {brand: productData.brand}),
     });
 
-    // Lưu sản phẩm
+    // Lưu sản phẩm - các middleware sẽ tự động tạo slug
     await product.save();
 
     return {
@@ -543,7 +573,7 @@ const productService = {
     }
 
     // Kiểm tra nếu cập nhật category
-    if (updateData.category) {
+    /*if (updateData.category) {
       const categoryExists = await Category.findById(updateData.category);
       if (!categoryExists) {
         throw new ApiError(404, 'Danh mục không tồn tại');
@@ -556,7 +586,7 @@ const productService = {
       if (!brandExists) {
         throw new ApiError(404, 'Thương hiệu không tồn tại');
       }
-    }
+    }*/
 
     // Cập nhật các trường
     const allowedFields = [
@@ -564,7 +594,9 @@ const productService = {
       'description',
       'category',
       'brand',
-      'isActive',
+      'price',
+      'colors',
+      'totalQuantity',
     ];
 
     for (const [key, value] of Object.entries(updateData)) {

@@ -53,12 +53,12 @@ const ProductSchema = new mongoose.Schema(
     ],
     totalQuantity: {
       type: Number,
-      default: 0,
+      default: 100,
     },
     stockStatus: {
       type: String,
       enum: ['in_stock', 'low_stock', 'out_of_stock'],
-      default: 'out_of_stock',
+      default: 'in_stock',
     },
     isActive: {
       type: Boolean,
@@ -81,8 +81,13 @@ const ProductSchema = new mongoose.Schema(
     },
     colors: {
       type: [String],
-      validate: [array => array.length <= 2, 'Tối đa 2 màu sắc'],
+      validate: {
+        validator: array => Array.isArray(array) && array.length <= 2,
+        message: 'Tối đa 2 màu sắc',
+      },
+      default: [],
     },
+
     deletedAt: {
       type: Date,
       default: null,
