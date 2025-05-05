@@ -16,12 +16,6 @@ const Footer: React.FC<{navigation: any}> = ({navigation}) => {
           style={styles.icon}
         />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('AddProduct')}>
-        <Image
-          source={require('../../../../assets/add.png')}
-          style={styles.icon}
-        />
-      </TouchableOpacity>
     </View>
   );
 };

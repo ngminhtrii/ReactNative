@@ -1,15 +1,26 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, FlatList, StyleSheet, Button, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Image,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation, NavigationProp} from '@react-navigation/native';
-import {TouchableOpacity} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  useFocusEffect,
+} from '@react-navigation/native';
 
 type Order = {
   orderId: string;
   createdAt: string;
   total: number;
   status: string;
+  address: string;
   items: {
     _id: string;
     tenSanPham: string;
@@ -17,6 +28,7 @@ type Order = {
     quantity: number;
     color: string;
     size: string;
+    hinhAnh?: string;
   }[];
 };
 
@@ -32,7 +44,20 @@ const ORDER_STATUS: {[key: string]: string} = {
 
 type RootStackParamList = {
   OrderDetail: {order: Order};
-  // Add other routes here if needed
+};
+
+const COLOR_MAP: {[key: string]: string} = {
+  '#ffffff': 'Trắng',
+  '#000000': 'Đen',
+  '#ff0000': 'Đỏ',
+  '#00ff00': 'Xanh lá',
+  '#0000ff': 'Xanh dương',
+  '#ffff00': 'Vàng',
+  '#ff69b4': 'Hồng',
+};
+
+const getColorName = (hex: string): string => {
+  return COLOR_MAP[hex.toLowerCase()] || hex;
 };
 
 const OrderScreen = () => {
@@ -48,7 +73,6 @@ const OrderScreen = () => {
   const fetchOrders = async () => {
     try {
       const storedOrders = await AsyncStorage.getItem('orders');
-      console.log('Dữ liệu lưu trong AsyncStorage:', storedOrders);
       if (storedOrders) {
         const ordersData = JSON.parse(storedOrders);
         const updatedOrders = ordersData.map((order: Order) => {
@@ -56,15 +80,12 @@ const OrderScreen = () => {
           const now = Date.now();
           const diffInMinutes = (now - timeCreated) / (1000 * 60);
 
-          // Tự động xác nhận đơn hàng sau 30 phút nếu trạng thái là "pending"
           if (order.status === 'pending' && diffInMinutes >= 30) {
             order.status = 'confirmed';
           }
           return order;
         });
         setOrders(updatedOrders);
-      } else {
-        console.log('Không có đơn hàng nào trong AsyncStorage');
       }
     } catch (error) {
       console.error('Lỗi khi đọc đơn hàng:', error);
@@ -105,8 +126,6 @@ const OrderScreen = () => {
     }
   };
 
-  // Removed redundant navigation declaration
-
   const renderItem = ({item}: {item: Order}) => (
     <TouchableOpacity
       onPress={() => navigation.navigate('OrderDetail', {order: item})}>
@@ -121,6 +140,21 @@ const OrderScreen = () => {
         <Text style={styles.orderStatus}>
           Trạng thái: {ORDER_STATUS[item.status] || item.status}
         </Text>
+        <Text style={styles.orderAddress}>Địa chỉ: {item.address}</Text>
+
+        <Text style={styles.sectionTitle}></Text>
+        {item.items.map(item => (
+          <View key={item._id} style={styles.productCard}>
+            <Image source={{uri: item.hinhAnh}} style={styles.image} />
+            <View style={styles.info}>
+              <Text style={styles.name}>{item.tenSanPham}</Text>
+              <Text>Màu: {item.color || 'Không có'}</Text>
+              <Text>Size: {item.size || 'Không có'}</Text>
+              <Text>Giá: {item.gia.toLocaleString()} đ</Text>
+              <Text>Số lượng: {item.quantity}</Text>
+            </View>
+          </View>
+        ))}
       </View>
     </TouchableOpacity>
   );
@@ -151,7 +185,44 @@ const styles = StyleSheet.create({
   orderDate: {},
   orderTotal: {marginTop: 4, fontWeight: 'bold', color: '#e53935'},
   orderStatus: {marginTop: 4, fontStyle: 'italic'},
-  buttonRow: {marginTop: 10},
+  orderAddress: {marginTop: 6, fontStyle: 'italic', color: '#444'},
+
+  productItem: {
+    flexDirection: 'row',
+    marginTop: 8,
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  productImage: {
+    width: 60,
+    height: 60,
+    marginRight: 8,
+    borderRadius: 4,
+  },
+  productInfo: {
+    flex: 1,
+  },
+  productName: {
+    fontWeight: 'bold',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 12,
+  },
+  productCard: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 8,
+  },
+  image: {width: 100, height: 100, borderRadius: 8},
+  info: {flex: 1, marginLeft: 12},
+  name: {fontSize: 16, fontWeight: 'bold'},
 });
 
 export default OrderScreen;

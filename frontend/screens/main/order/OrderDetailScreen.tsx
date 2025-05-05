@@ -1,16 +1,35 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, Button, Alert} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Picker} from '@react-native-picker/picker';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
+
+type Product = {
+  _id: string;
+  tenSanPham: string;
+  hinhAnh: string;
+  gia: number;
+  quantity: number;
+  color?: string;
+  size?: string;
+};
 
 type Order = {
   orderId: string;
   createdAt: string;
   total: number;
   status: string;
-  items: any[];
+  items: Product[];
+  address: string;
 };
 
 type RouteParams = {
@@ -30,51 +49,72 @@ const ORDER_STATUS: {[key: string]: string} = {
 const OrderDetailScreen = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
   const navigation = useNavigation();
-  const [order, setOrder] = useState<Order>(route.params.order);
-  const [selectedStatus, setSelectedStatus] = useState<string>(order.status);
+  const [order] = useState<Order>(route.params.order);
 
-  const handleSave = async () => {
-    try {
-      const data = await AsyncStorage.getItem('orders');
-      let orders = data ? JSON.parse(data) : [];
-
-      const updatedOrders = orders.map((o: Order) =>
-        o.orderId === order.orderId ? {...o, status: selectedStatus} : o,
-      );
-
-      await AsyncStorage.setItem('orders', JSON.stringify(updatedOrders));
-      Alert.alert('Thành công', 'Trạng thái đơn hàng đã được cập nhật');
-      navigation.goBack();
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Lỗi', 'Không thể cập nhật đơn hàng');
-    }
+  const navigateToUpdateStatus = () => {
+    navigation.navigate('UpdateOrderStatus', {
+      orderId: order.orderId,
+      currentStatus: order.status,
+    });
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.label}>Mã đơn hàng: {order.orderId}</Text>
+      <Text style={styles.label}>Địa chỉ giao hàng: {order.address}</Text>
       <Text style={styles.label}>
         Tổng tiền: {order.total.toLocaleString()} đ
       </Text>
-      <Text style={styles.label}>Trạng thái hiện tại:</Text>
+      <Text style={styles.label}>
+        Trạng thái hiện tại: {ORDER_STATUS[order.status]}
+      </Text>
 
-      <Picker
-        selectedValue={selectedStatus}
-        onValueChange={itemValue => setSelectedStatus(itemValue)}>
-        {Object.keys(ORDER_STATUS).map(key => (
-          <Picker.Item key={key} label={ORDER_STATUS[key]} value={key} />
-        ))}
-      </Picker>
-
-      <Button title="Cập nhật trạng thái" onPress={handleSave} />
-    </View>
+      <Text style={styles.sectionTitle}>Chi tiết sản phẩm:</Text>
+      {order.items.map(item => (
+        <View key={item._id} style={styles.productCard}>
+          <Image source={{uri: item.hinhAnh}} style={styles.image} />
+          <View style={styles.info}>
+            <Text style={styles.name}>{item.tenSanPham}</Text>
+            <Text>Màu: {item.color || 'Không có'}</Text>
+            <Text>Size: {item.size || 'Không có'}</Text>
+            <Text>Giá: {item.gia.toLocaleString()} đ</Text>
+            <Text>Số lượng: {item.quantity}</Text>
+          </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {padding: 16},
   label: {marginBottom: 8, fontSize: 16},
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 12,
+  },
+  productCard: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 8,
+  },
+  image: {width: 100, height: 100, borderRadius: 8},
+  info: {flex: 1, marginLeft: 12},
+  name: {fontSize: 16, fontWeight: 'bold'},
+  updateButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  updateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
-
 export default OrderDetailScreen;

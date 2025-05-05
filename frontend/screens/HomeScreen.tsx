@@ -22,12 +22,25 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
       const res = await authAxios.get('/admin/products');
       const allProducts = res.data.data || [];
 
-      const sellers = allProducts.filter(
-        (p: {soLuong: number}) => p.soLuong < 50,
-      );
-      const news = allProducts.filter(
-        (p: {soLuong: number}) => p.soLuong >= 50,
-      );
+      const sellers = allProducts
+        .filter((p: any) => p.totalQuantity < 50)
+        .map((product: any) => ({
+          _id: product._id,
+          hinhAnh: product.images?.[0]?.url || '',
+          tenSanPham: product.name,
+          gia: product.price,
+          mauSac: product.colors,
+        }));
+
+      const news = allProducts
+        .filter((p: any) => p.totalQuantity >= 50)
+        .map((product: any) => ({
+          _id: product._id,
+          hinhAnh: product.images?.[0]?.url || '',
+          tenSanPham: product.name,
+          gia: product.price,
+          mauSac: product.colors,
+        }));
 
       setBestSellers(sellers);
       setNewProducts(news);

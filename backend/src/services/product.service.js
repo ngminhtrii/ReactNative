@@ -546,6 +546,7 @@ const productService = {
       price: productData.price,
       totalQuantity: productData.totalQuantity,
       colors: productData.colors,
+      sizes: productData.sizes,
       isActive:
         productData.isActive !== undefined ? productData.isActive : true,
       ...(productData.category && {category: productData.category}),
@@ -596,6 +597,7 @@ const productService = {
       'brand',
       'price',
       'colors',
+      'sizes',
       'totalQuantity',
     ];
 

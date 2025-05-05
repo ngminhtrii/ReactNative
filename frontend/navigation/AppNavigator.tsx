@@ -24,6 +24,10 @@ import OrderDetailScreen from '../screens/main/order/OrderDetailScreen';
 import ReviewScreen from '../screens/main/product/ReviewScreen';
 import ProductManagementScreen from '../screens/admin/product/ProductManagementScreen';
 import EditProductScreen from '../screens/admin/product/EditProductScreen';
+import ThanhToan from '../screens/main/product/ThanhToan';
+import UpdateOrderStatusScreen from '../screens/main/order/UpdateOrderStatusScreen';
+import AdminMenuScreen from '../screens/admin/MenuOption';
+import OrderManagementScreen from '../screens/admin/order/OrderManagementScreen';
 
 interface Product {
   _id: string;
@@ -57,6 +61,10 @@ export type RootStackParamList = {
   ProductList: undefined;
   ProductManagement: undefined;
   EditProduct: {route: {params: {product: Product}}};
+  ThanhToan: undefined;
+  UpdateOrderStatus: {orderId: string; currentStatus: string};
+  AdminMenu: undefined;
+  OrderManagement: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -180,6 +188,26 @@ const AppNavigator = () => {
         <Stack.Screen
           name="EditProduct"
           component={EditProductScreen as React.FC}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ThanhToan"
+          component={ThanhToan as React.FC}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="UpdateOrderStatus"
+          component={UpdateOrderStatusScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="AdminMenu"
+          component={AdminMenuScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="OrderManagement"
+          component={OrderManagementScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

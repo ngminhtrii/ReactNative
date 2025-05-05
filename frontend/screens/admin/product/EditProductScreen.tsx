@@ -25,6 +25,7 @@ interface Product {
   price: string;
   totalQuantity: number;
   colors: string[];
+  sizes?: string[];
 }
 
 interface EditProductScreenProps {
@@ -62,6 +63,7 @@ const EditProductScreen: React.FC<EditProductScreenProps> = ({route}) => {
   const [totalQuantity, setTotalQuantity] = useState(
     product.totalQuantity.toString(),
   );
+  const [sizes, setSizes] = useState(product.sizes?.join(', ') || '');
   const [selectedColors, setSelectedColors] = useState(product.colors);
   const [image, setImage] = useState<ImageAsset | null>(null);
   const [loading, setLoading] = useState(false);
@@ -101,6 +103,7 @@ const EditProductScreen: React.FC<EditProductScreenProps> = ({route}) => {
         price,
         totalQuantity: parseInt(totalQuantity, 10),
         colors: selectedColors,
+        sizes: sizes.split(',').map(size => size.trim()),
       };
 
       await authAxios.put(`/admin/products/${product._id}`, updatePayload);
@@ -169,7 +172,13 @@ const EditProductScreen: React.FC<EditProductScreenProps> = ({route}) => {
           keyboardType="numeric"
           style={styles.input}
         />
-
+        <TextInput
+          label="Kích thước (cách nhau bằng dấu phẩy)"
+          mode="outlined"
+          value={sizes}
+          onChangeText={setSizes}
+          style={styles.input}
+        />
         <Text style={styles.label}>Chọn màu (tối đa 2):</Text>
         <View style={styles.colorContainer}>
           {colors.map(color => (

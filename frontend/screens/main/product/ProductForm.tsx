@@ -34,6 +34,7 @@ const ProductForm: React.FC = () => {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [totalQuantity, setTotalQuantity] = useState('');
+  const [sizes, setSizes] = useState<string>('');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -61,6 +62,7 @@ const ProductForm: React.FC = () => {
           price: parseFloat(price),
           totalQuantity: parseInt(totalQuantity),
           colors: selectedColors,
+          sizes: sizes.split(',').map(size => size.trim()),
         },
         {
           headers: {
@@ -120,7 +122,13 @@ const ProductForm: React.FC = () => {
           keyboardType="numeric"
           style={styles.input}
         />
-
+        <TextInput
+          label="Kích thước (cách nhau bằng dấu phẩy)"
+          mode="outlined"
+          value={sizes}
+          onChangeText={setSizes}
+          style={styles.input}
+        />
         <Text style={styles.label}>Chọn màu (tối đa 2):</Text>
         <View style={styles.colorContainer}>
           {colors.map(color => (

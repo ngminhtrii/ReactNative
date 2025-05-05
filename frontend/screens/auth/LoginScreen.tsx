@@ -37,10 +37,9 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
       // Lưu token và userId vào AsyncStorage
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userId', userId);
-      if (response.data.data.role === 'admin') {
-        navigation.navigate('ProductManagement');
-      }
-      if (response.data.data.role === 'user') {
+      if (response.data.data._id === '67ea3e4e42c2e511308b98d4') {
+        navigation.navigate('AdminMenu');
+      } else {
         navigation.navigate('Home');
       }
     } catch (error: any) {

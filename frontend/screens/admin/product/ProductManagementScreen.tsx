@@ -55,6 +55,7 @@ const ProductManagementScreen: React.FC<{navigation: any}> = ({navigation}) => {
           danhGia: product.rating,
           soDanhGia: product.numReviews,
           mauSac: product.colors,
+          sizes: product.sizes,
         })),
       );
     } catch (error) {
@@ -86,11 +87,29 @@ const ProductManagementScreen: React.FC<{navigation: any}> = ({navigation}) => {
       <Text>Mô tả: {item.moTa}</Text>
       <Text>Giá: {item.gia.toLocaleString()} đ</Text>
       <Text>Số lượng: {item.soLuong}</Text>
+      <Text>Kích thước: {item.sizes?.join(', ')}</Text>
 
       <Text>
         Đánh giá: {item.danhGia} ({item.soDanhGia} đánh giá)
       </Text>
-      <Text>Màu sắc: {item.mauSac?.join(', ')}</Text>
+      <View style={{flexDirection: 'row', marginTop: 4, flexWrap: 'wrap'}}>
+        <Text style={{marginRight: 6}}>Màu sắc:</Text>
+        {item.mauSac?.map((color: string, index: number) => (
+          <View
+            key={index}
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              backgroundColor: color,
+              marginRight: 6,
+              marginBottom: 6,
+              borderWidth: 1,
+              borderColor: '#ccc',
+            }}
+          />
+        ))}
+      </View>
 
       <View style={styles.actions}>
         <TouchableOpacity
@@ -104,6 +123,7 @@ const ProductManagementScreen: React.FC<{navigation: any}> = ({navigation}) => {
                 price: item.gia.toString(),
                 totalQuantity: item.soLuong,
                 colors: item.mauSac || [],
+                sizes: item.sizes || [],
               },
             })
           }>

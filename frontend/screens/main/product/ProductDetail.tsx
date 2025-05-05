@@ -17,13 +17,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Product = {
   _id: string;
-  tenSanPham: string;
-  gia: number;
-  hinhAnh: string;
-  moTa: string;
-  mauSac: string[];
-  kichThuoc: string[];
-  soLuong: number;
+  name: string;
+  price: number;
+  images: {url: string; isMain: boolean}[];
+  description: string;
+  colors: string[];
+  totalQuantity: number;
+  sizes: string[];
 };
 
 type RootStackParamList = {
@@ -32,6 +32,7 @@ type RootStackParamList = {
 type ProductDetailRouteProp = RouteProp<RootStackParamList, 'ProductDetail'>;
 
 const ProductDetail = ({navigation, route}: any) => {
+  const [quantity, setQuantity] = useState(1);
   const {id, selectedDiscount} = route.params || {};
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,14 @@ const ProductDetail = ({navigation, route}: any) => {
       setLoading(false);
     }
   };
-
+  const increaseQuantity = () => {
+    setQuantity(prev => prev + 1);
+  };
+  const decreaseQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
+  };
   const checkFavorite = async (productId: string) => {
     const storedFavorites = await AsyncStorage.getItem('favorites');
     const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
@@ -96,20 +104,22 @@ const ProductDetail = ({navigation, route}: any) => {
     );
   }
 
+  const mainImage = product.images.find(img => img.isMain)?.url;
+
   const handleAddToCart = async () => {
-    if (!selectedColor || !selectedSize) {
-      Alert.alert('Thông báo', 'Vui lòng chọn màu sắc và kích thước!');
+    if (!selectedColor) {
+      Alert.alert('Thông báo', 'Vui lòng chọn màu sắc!');
       return;
     }
 
     const item = {
       _id: product._id,
-      tenSanPham: product.tenSanPham,
-      gia: product.gia,
-      hinhAnh: product.hinhAnh,
+      tenSanPham: product.name,
+      gia: product.price,
+      hinhAnh: mainImage,
       color: selectedColor,
-      size: selectedSize,
-      quantity: 1,
+      sizes: selectedSize,
+      quantity: quantity,
     };
 
     try {
@@ -121,63 +131,69 @@ const ProductDetail = ({navigation, route}: any) => {
     }
   };
 
-  const handleBuyNow = async () => {
-    if (!selectedColor || !selectedSize) {
-      Alert.alert('Vui lòng chọn màu và kích thước');
+  const handleBuyNow = () => {
+    if (!selectedColor) {
+      Alert.alert('Vui lòng chọn màu!');
       return;
     }
 
-    const discountedPrice = product.gia - (product.gia * discount) / 100;
-
-    const order = {
-      orderId: Date.now().toString(),
-      items: [
+    navigation.navigate('ThanhToan', {
+      products: [
         {
           _id: product._id,
-          tenSanPham: product.tenSanPham,
-          gia: discountedPrice,
-          quantity: 1,
-          hinhAnh: product.hinhAnh,
+          tenSanPham: product.name,
+          gia: product.price,
+          hinhAnh: mainImage,
           color: selectedColor,
           size: selectedSize,
+          quantity: quantity,
         },
       ],
-      total: discountedPrice,
-      createdAt: new Date().toISOString(),
-      status: 'Chờ xác nhận',
-    };
-
-    try {
-      const existing = await AsyncStorage.getItem('orders');
-      const orders = existing ? JSON.parse(existing) : [];
-      orders.push(order);
-      await AsyncStorage.setItem('orders', JSON.stringify(orders));
-
-      Alert.alert('Thành công', 'Đơn hàng đã được tạo!');
-      navigation.navigate('Order');
-    } catch (error) {
-      console.error('Lỗi khi lưu đơn hàng:', error);
-      Alert.alert('Lỗi', 'Không thể tạo đơn hàng.');
-    }
+    });
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={{uri: product.hinhAnh}} style={styles.image} />
-        <Text style={styles.name}>{product.tenSanPham}</Text>
-        <Text style={styles.price}>Giá: {product.gia.toLocaleString()} đ</Text>
+        <Image source={{uri: mainImage}} style={styles.image} />
+        <Text style={styles.name}>{product.name}</Text>
+        <Text style={styles.price}>
+          Giá: {product.price.toLocaleString()} đ
+        </Text>
         {discount > 0 && (
           <Text style={styles.discountedPrice}>
             Giá sau giảm:{' '}
-            {(product.gia - (product.gia * discount) / 100).toLocaleString()} đ
+            {(
+              product.price -
+              (product.price * discount) / 100
+            ).toLocaleString()}{' '}
+            đ
           </Text>
         )}
-        <Text style={styles.description}>{product.moTa}</Text>
-
+        <Text style={styles.description}>{product.description}</Text>
+        <Text style={styles.label}>Kích thước:</Text>
+        <View style={styles.sizeRow}>
+          {product.sizes.map((size, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.sizeBox,
+                selectedSize === size && styles.selectedSizeBox,
+              ]}
+              onPress={() => setSelectedSize(size)}>
+              <Text
+                style={[
+                  styles.sizeText,
+                  selectedSize === size && styles.selectedSizeText,
+                ]}>
+                {size}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         <Text style={styles.label}>Màu sắc:</Text>
         <View style={styles.colorRow}>
-          {product.mauSac.map((color, index) => (
+          {product.colors.map((color, index) => (
             <TouchableOpacity
               key={index}
               style={[
@@ -189,34 +205,22 @@ const ProductDetail = ({navigation, route}: any) => {
             />
           ))}
         </View>
-
-        <Text style={styles.label}>Kích thước:</Text>
-        <View style={styles.sizeRow}>
-          {product.kichThuoc.map((size, index) => (
+        <View style={styles.quantityContainer}>
+          <Text style={styles.label}>Số lượng:</Text>
+          <View style={styles.quantitySelector}>
             <TouchableOpacity
-              key={index}
-              style={[
-                styles.sizeBox,
-                selectedSize === size && styles.selectedSizeBox,
-              ]}
-              onPress={() => setSelectedSize(size)}>
-              <Text
-                style={[
-                  styles.sizeText,
-                  selectedSize === size && {color: '#fff'},
-                ]}>
-                {size}
-              </Text>
+              onPress={decreaseQuantity}
+              style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>-</Text>
             </TouchableOpacity>
-          ))}
+            <Text style={styles.quantityText}>{quantity}</Text>
+            <TouchableOpacity
+              onPress={increaseQuantity}
+              style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <TouchableOpacity
-          style={styles.selectDiscount}
-          onPress={() => navigation.navigate('Discount')}>
-          <Text style={styles.selectDiscountText}>Chọn mã giảm giá</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[
             styles.favoriteButton,
@@ -248,15 +252,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  favoriteButton: {
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
   content: {
     padding: 16,
-    paddingBottom: 120, // Đảm bảo không bị Footer che mất nội dung cuối
+    paddingBottom: 120,
   },
   image: {
     width: '100%',
@@ -310,28 +308,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
   },
-  sizeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  sizeBox: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  selectedSizeBox: {
-    backgroundColor: '#1976d2',
-    borderColor: '#1976d2',
-  },
-  sizeText: {
-    fontSize: 14,
-    color: '#000',
-  },
   selectDiscount: {
     backgroundColor: '#1976d2',
     padding: 10,
@@ -342,6 +318,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  favoriteButton: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -374,6 +356,58 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  sizeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  sizeBox: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedSizeBox: {
+    borderColor: '#000',
+    backgroundColor: '#f0f0f0',
+  },
+  sizeText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  selectedSizeText: {
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  quantityContainer: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  quantitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+  },
+  quantityButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginHorizontal: 16,
   },
 });
 

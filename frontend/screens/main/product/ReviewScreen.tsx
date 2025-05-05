@@ -44,7 +44,7 @@ const ReviewScreen = ({navigation}: any) => {
     const discountCode = {
       id: Date.now().toString(),
       code: `DISCOUNT${Math.floor(Math.random() * 1000)}`, // Tạo mã ngẫu nhiên
-      description: `Giảm ${rating >= 4 ? '20%' : '10%'} cho lần mua tiếp theo`,
+      description: `Giảm ${rating >= 4 ? '20%' : '10%'} cho các sản phẩm`,
       discount: rating >= 4 ? 20 : 10, // Giảm 20% nếu đánh giá >= 4 sao, ngược lại giảm 10%
     };
 

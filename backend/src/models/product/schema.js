@@ -79,6 +79,13 @@ const ProductSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    sizes: {
+      type: [String],
+      validate: {
+        validator: array => Array.isArray(array) && array.length <= 5,
+      },
+      default: [],
+    },
     colors: {
       type: [String],
       validate: {

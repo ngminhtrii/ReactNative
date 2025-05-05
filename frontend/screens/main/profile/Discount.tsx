@@ -9,13 +9,15 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 
 const Discount = () => {
   const [discountCodes, setDiscountCodes] = useState<
     {id: string; code: string; description: string; discount: number}[]
   >([]);
   const navigation = useNavigation();
-
+  const route = useRoute();
+  const {onSelect} = route.params || {}; // lấy callback
   const fetchDiscounts = async () => {
     try {
       const discounts = await AsyncStorage.getItem('DISCOUNT_CODES');
@@ -41,14 +43,15 @@ const Discount = () => {
       );
       setDiscountCodes(updatedDiscounts);
 
-      // Truyền mã giảm giá về màn hình trước
       Alert.alert('Thông báo', `Bạn đã chọn mã giảm giá: ${discount.code}`);
-      navigation.goBack(); // Quay lại màn hình trước
-      navigation.navigate({
-        name: 'ProductDetail', // Hoặc 'CartScreen'
-        params: {selectedDiscount: discount},
-        merge: true,
-      });
+
+      // ✅ Gọi callback
+      if (onSelect) {
+        onSelect(discount.discount, discount.code);
+      }
+
+      // ✅ Quay lại màn trước
+      navigation.goBack();
     } catch (error) {
       console.error('Lỗi khi sử dụng mã giảm giá:', error);
     }
