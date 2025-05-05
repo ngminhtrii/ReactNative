@@ -10,6 +10,7 @@ type Order = {
   createdAt: string;
   total: number;
   status: string;
+  isReviewed?: boolean; // Added isReviewed property
   items: {
     _id: string;
     tenSanPham: string;
@@ -105,7 +106,26 @@ const OrderScreen = () => {
     }
   };
 
-  // Removed redundant navigation declaration
+  const handleMarkAsReviewed = async (orderId: string) => {
+    try {
+      const updated = orders.map(o =>
+        o.orderId === orderId ? {...o, isReviewed: true} : o,
+      );
+      await AsyncStorage.setItem('orders', JSON.stringify(updated)); // Lưu vào AsyncStorage
+      setOrders(updated); // Cập nhật lại state
+    } catch (error) {
+      console.error('Lỗi khi cập nhật trạng thái đánh giá:', error);
+    }
+  };
+
+  // Tính tổng doanh thu và tổng số lượng đơn hàng đã giao
+  const totalRevenue = orders
+    .filter(order => order.status !== 'cancelled')
+    .reduce((sum, order) => sum + order.total, 0);
+
+  const totalDeliveredOrders = orders.filter(
+    order => order.status === 'delivered',
+  ).length;
 
   const renderItem = ({item}: {item: Order}) => (
     <TouchableOpacity
@@ -122,24 +142,23 @@ const OrderScreen = () => {
           Trạng thái: {ORDER_STATUS[item.status] || item.status}
         </Text>
 
-        {item.status === 'delivered' && (
-          <TouchableOpacity
-            style={{
-              marginTop: 10,
-              backgroundColor: '#2196F3',
-              padding: 8,
-              borderRadius: 5,
-            }}
-            onPress={() =>
-              navigation.navigate('ReviewScreen', {
-                product: item.items[0], // giả sử đánh giá 1 sản phẩm trong đơn
-              })
-            }>
-            <Text style={{color: 'white', textAlign: 'center'}}>
-              Đánh giá sản phẩm
-            </Text>
-          </TouchableOpacity>
-        )}
+        {/* Chỉ hiển thị nút đánh giá nếu đã giao và chưa đánh giá */}
+        {item.status === 'delivered' ? (
+          item.isReviewed ? (
+            <Text style={styles.reviewedText}>Bạn đã đánh giá sản phẩm.</Text>
+          ) : (
+            <TouchableOpacity
+              style={styles.reviewButton}
+              onPress={() =>
+                navigation.navigate('ReviewScreen', {
+                  product: item.items[0], // giả sử chỉ đánh giá 1 sản phẩm
+                  onReviewComplete: () => handleMarkAsReviewed(item.orderId),
+                })
+              }>
+              <Text style={styles.reviewButtonText}>Đánh giá sản phẩm</Text>
+            </TouchableOpacity>
+          )
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -147,6 +166,13 @@ const OrderScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Lịch sử đơn hàng</Text>
+      {/* Hiển thị tổng doanh thu và số lượng đơn đã giao */}
+      <Text style={styles.totalRevenue}>
+        Tổng doanh thu: {totalRevenue.toLocaleString()} đ
+      </Text>
+      <Text style={styles.totalRevenue}>
+        Tổng số đơn đã giao: {totalDeliveredOrders}
+      </Text>
       <FlatList
         data={orders}
         keyExtractor={item => item.orderId}
@@ -171,6 +197,27 @@ const styles = StyleSheet.create({
   orderTotal: {marginTop: 4, fontWeight: 'bold', color: '#e53935'},
   orderStatus: {marginTop: 4, fontStyle: 'italic'},
   buttonRow: {marginTop: 10},
+  reviewButton: {
+    marginTop: 10,
+    backgroundColor: '#2196F3',
+    padding: 8,
+    borderRadius: 5,
+  },
+  reviewButtonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  reviewedText: {
+    marginTop: 10,
+    color: 'green',
+    fontStyle: 'italic',
+  },
+  totalRevenue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#4CAF50',
+  },
 });
 
 export default OrderScreen;

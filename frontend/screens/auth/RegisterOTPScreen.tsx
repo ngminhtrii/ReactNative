@@ -5,25 +5,19 @@ import config from '../../config/config';
 
 axios.defaults.baseURL = config.baseURL;
 
-const RegisterOTPScreen = ({
-  route,
-  navigation,
-}: {
-  route: any;
-  navigation: any;
-}) => {
-  const {userId} = route.params;
+const RegisterOTPScreen = ({navigation}: {navigation: any}) => {
+  const [email, setEmail] = useState(''); // Thêm state cho email
   const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleVerifyOTP = async () => {
+  const handleSendOTP = async () => {
     try {
-      const response = await axios.post('/api/auth/verify-otp', {
-        userId,
-        otp,
+      const response = await axios.post('/auth/verify-otp', {
+        email, // Gửi email
+        otp, // Gửi OTP
       });
       setMessage(response.data.message);
-      navigation.navigate('Login');
+      navigation.navigate('Login'); // Chuyển đến trang Login sau khi gửi OTP thành công
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);
@@ -38,11 +32,17 @@ const RegisterOTPScreen = ({
     <View style={styles.container}>
       <TextInput
         style={styles.input}
+        placeholder="Enter Email"
+        value={email}
+        onChangeText={setEmail} // Cập nhật email
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Enter OTP"
         value={otp}
-        onChangeText={setOtp}
+        onChangeText={setOtp} // Cập nhật OTP
       />
-      <Button title="Verify OTP" onPress={handleVerifyOTP} />
+      <Button title="Send OTP" onPress={handleSendOTP} />
       {message ? <Text>{message}</Text> : null}
     </View>
   );

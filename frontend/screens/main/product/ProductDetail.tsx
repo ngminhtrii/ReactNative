@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  FlatList,
 } from 'react-native';
 import authAxios from '../../../utils/authAxios';
 import {RouteProp} from '@react-navigation/native';
@@ -40,6 +41,7 @@ const ProductDetail = ({navigation, route}: any) => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [discount, setDiscount] = useState<number>(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
 
   const fetchProduct = async () => {
     try {
@@ -52,14 +54,31 @@ const ProductDetail = ({navigation, route}: any) => {
       setLoading(false);
     }
   };
+
+  const fetchSuggestedProducts = async () => {
+    try {
+      const res = await authAxios.get('/admin/products');
+      const allProducts = res.data.data || [];
+      const randomProducts = allProducts
+        .filter((p: Product) => p._id !== id) // Exclude the current product
+        .sort(() => 0.5 - Math.random()) // Shuffle the array
+        .slice(0, 4); // Take 4 random products
+      setSuggestedProducts(randomProducts);
+    } catch (error) {
+      console.error('Lỗi khi tải sản phẩm gợi ý:', error);
+    }
+  };
+
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);
   };
+
   const decreaseQuantity = () => {
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
   };
+
   const checkFavorite = async (productId: string) => {
     const storedFavorites = await AsyncStorage.getItem('favorites');
     const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
@@ -87,6 +106,7 @@ const ProductDetail = ({navigation, route}: any) => {
 
   useEffect(() => {
     fetchProduct();
+    fetchSuggestedProducts();
   }, [id]);
 
   useEffect(() => {
@@ -241,6 +261,31 @@ const ProductDetail = ({navigation, route}: any) => {
             <Text style={styles.buttonText}>Mua ngay</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Suggested Products Section */}
+        <Text style={styles.suggestedTitle}>Sản phẩm tương tự</Text>
+        <FlatList
+          data={suggestedProducts}
+          keyExtractor={item => item._id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              style={styles.suggestedProduct}
+              onPress={() => navigation.push('ProductDetail', {id: item._id})}>
+              <Image
+                source={{uri: item.images[0]?.url}}
+                style={styles.suggestedImage}
+              />
+              <Text style={styles.suggestedName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.suggestedPrice}>
+                {item.price.toLocaleString()} đ
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
       </ScrollView>
       <Footer navigation={navigation} />
     </View>
@@ -408,6 +453,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginHorizontal: 16,
+  },
+  suggestedTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  suggestedProduct: {
+    width: 120,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  suggestedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  suggestedName: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  suggestedPrice: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#d32f2f',
   },
 });
 

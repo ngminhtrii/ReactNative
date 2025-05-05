@@ -19,7 +19,7 @@ const ForgotPasswordOTPScreen = ({
 
   const handleVerifyOTP = async () => {
     try {
-      const response = await axios.post('/api/auth/verify-forget-password', {
+      const response = await axios.post('/auth/verify-forget-password', {
         userId,
         otp,
         newPassword,

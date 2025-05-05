@@ -12,7 +12,7 @@ const ForgotPasswordScreen = ({navigation}: {navigation: any}) => {
 
   const handleForgotPassword = async () => {
     try {
-      const response = await axios.post('/api/auth/forget-password', {email});
+      const response = await axios.post('/auth/forgot-password', {email});
       setMessage(response.data.message);
       setUserId(response.data.userId);
       navigation.navigate('ForgotPasswordOTP', {userId: response.data.userId});

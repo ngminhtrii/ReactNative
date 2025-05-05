@@ -17,12 +17,15 @@ type Product = {
 };
 
 type RootStackParamList = {
-  ReviewScreen: {product: Product};
+  ReviewScreen: {
+    product: Product;
+    onReviewComplete: () => void;
+  };
 };
 
 const ReviewScreen = ({navigation}: any) => {
   const route = useRoute<RouteProp<RootStackParamList, 'ReviewScreen'>>();
-  const {product} = route.params;
+  const {product, onReviewComplete} = route.params;
 
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState('');
@@ -33,38 +36,57 @@ const ReviewScreen = ({navigation}: any) => {
       return;
     }
 
-    // Gửi đánh giá (có thể lưu vào backend hoặc AsyncStorage)
-    console.log('Gửi đánh giá:', {
-      productId: product._id,
-      rating,
-      comment,
-    });
-
-    // Tạo mã giảm giá
-    const discountCode = {
-      id: Date.now().toString(),
-      code: `DISCOUNT${Math.floor(Math.random() * 1000)}`, // Tạo mã ngẫu nhiên
-      description: `Giảm ${rating >= 4 ? '20%' : '10%'} cho các sản phẩm`,
-      discount: rating >= 4 ? 20 : 10, // Giảm 20% nếu đánh giá >= 4 sao, ngược lại giảm 10%
-    };
-
     try {
-      // Lấy danh sách mã giảm giá hiện tại
+      const reviewed = await AsyncStorage.getItem('REVIEWED_PRODUCTS');
+      const reviewedProducts = reviewed ? JSON.parse(reviewed) : [];
+
+      if (reviewedProducts.includes(product._id)) {
+        Alert.alert('Bạn đã đánh giá sản phẩm này rồi.');
+        return;
+      }
+
+      console.log('Gửi đánh giá:', {
+        productId: product._id,
+        rating,
+        comment,
+      });
+
+      reviewedProducts.push(product._id);
+      await AsyncStorage.setItem(
+        'REVIEWED_PRODUCTS',
+        JSON.stringify(reviewedProducts),
+      );
+
+      const discountCode = {
+        id: Date.now().toString(),
+        code: `DISCOUNT${Math.floor(Math.random() * 1000)}`,
+        description: `Giảm ${rating >= 4 ? '20%' : '10%'} cho các sản phẩm`,
+        discount: rating >= 4 ? 20 : 10,
+      };
+
       const existingDiscounts = await AsyncStorage.getItem('DISCOUNT_CODES');
       const discounts = existingDiscounts ? JSON.parse(existingDiscounts) : [];
-
-      // Thêm mã giảm giá mới
       discounts.push(discountCode);
       await AsyncStorage.setItem('DISCOUNT_CODES', JSON.stringify(discounts));
 
       Alert.alert(
         'Cảm ơn bạn đã đánh giá!',
         `Bạn đã nhận được mã giảm giá: ${discountCode.code}`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (onReviewComplete) {
+                onReviewComplete(); // Gọi callback để đánh dấu đơn hàng đã đánh giá
+              }
+              navigation.goBack();
+            },
+          },
+        ],
       );
-      navigation.goBack();
     } catch (error) {
-      console.error('Lỗi khi lưu mã giảm giá:', error);
-      Alert.alert('Lỗi', 'Không thể lưu mã giảm giá.');
+      console.error('Lỗi khi gửi đánh giá:', error);
+      Alert.alert('Lỗi', 'Không thể xử lý đánh giá.');
     }
   };
 

@@ -14,7 +14,7 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('/api/auth/signup', {
+      const response = await axios.post('/auth/register', {
         email,
         password,
         name,
@@ -22,10 +22,13 @@ const RegisterScreen = ({navigation}: {navigation: any}) => {
       setMessage(response.data.message);
       setUserId(response.data.userId);
 
-      // Gửi OTP sau khi đăng ký thành công
-      await axios.post('/api/auth/send-otp', {email});
-
+      // Điều hướng ngay lập tức đến màn hình RegisterOTP
       navigation.navigate('RegisterOTP', {userId: response.data.userId});
+
+      // Gửi OTP (không chặn điều hướng)
+      axios.post('/auth/verify-otp', {email}).catch(error => {
+        console.error('Error during OTP verification:', error);
+      });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setMessage(error.response.data.error);
